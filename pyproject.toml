@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "paper9-mnr-offline-package"
+version = "0.1.0"
+description = "ArcGIS-free offline package for reproducing and recalibrating Paper9 farmland spatial-layout optimization on MNR authoritative data."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = {text = "MIT"}
+authors = [
+  {name = "Ning Zhou"}
+]
+dependencies = [
+  "numpy >= 1.24",
+  "pandas >= 2.0",
+  "geopandas >= 0.14",
+  "shapely >= 2.0",
+  "rasterio >= 1.3",
+  "pyproj >= 3.5",
+  "libpysal >= 4.8",
+  "scikit-learn >= 1.3",
+  "torch >= 2.0",
+  "onnx >= 1.14",
+  "onnxruntime >= 1.16",
+  "gymnasium >= 0.29",
+  "PyYAML >= 6.0",
+  "typer >= 0.9",
+  "tqdm >= 4.65",
+]
+
+[project.optional-dependencies]
+dev = ["pytest >= 7", "ruff >= 0.1"]
+
+[project.scripts]
+paper9-mnr = "paper9_mnr.cli:main"
+farmland-mpc = "farmland_mpc.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["paper9_mnr*", "farmland_mpc*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -p no:cacheprovider"
+

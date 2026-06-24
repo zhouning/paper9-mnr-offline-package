@@ -1,0 +1,17 @@
+# Example only. Replace with actual intranet-approved package filenames.
+numpy-*.whl
+pandas-*.whl
+PyYAML-*.whl
+typer-*.whl
+geopandas-*.whl
+shapely-*.whl
+rasterio-*.whl
+pyproj-*.whl
+libpysal-*.whl
+scikit_learn-*.whl
+torch-*.whl
+onnx-*.whl
+onnxruntime-*.whl
+gymnasium-*.whl
+tqdm-*.whl
+

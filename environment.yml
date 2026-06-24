@@ -1,0 +1,32 @@
+name: paper9-mnr-offline
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - geopandas
+  - rasterio
+  - pyogrio
+  - shapely
+  - fiona
+  - numpy
+  - scipy
+  - networkx
+  - libpysal
+  - scikit-learn
+  - matplotlib
+  - tqdm
+  - typer
+  - pyyaml
+  - pytorch
+  - onnx
+  - onnxruntime
+  - onnxscript
+  - gymnasium
+  - pytest
+  - pip
+  - pip:
+      - --no-index
+      - --find-links=wheelhouse
+      - -e .
+
