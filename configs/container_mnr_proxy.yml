@@ -1,14 +1,14 @@
 project:
-  name: paper9-mnr-authority-slope
-  description: County-scale Paper9 reproduction on authoritative MNR parcel data.
+  name: paper9-mnr-container-proxy
+  description: Container smoke validation using proxy MNR-style inputs.
 
-crs: EPSG:32648
+crs: EPSG:2359
 
 data:
   dltb: data/input/DLTB_with_authority_slope.gpkg
-  admin_units: data/input/admin_units.gpkg
   dem: data/input/DEM_placeholder.tif
-  prepared_dir: data/working/prepared
+  admin_units: data/input/admin_units.gpkg
+  prepared_dir: data/working/container_mnr_proxy/prepared
 
 fields:
   dlbm: DLBM
@@ -27,35 +27,38 @@ preparation:
   min_parcels_per_township: 50
 
 outputs:
-  plan_dir: outputs/plan_baseline
-  optimized_vector: outputs/plan_baseline/DLTB_optimized.shp
+  plan_dir: outputs/container_mnr_proxy/plan
+  optimized_vector: outputs/container_mnr_proxy/plan/DLTB_optimized.shp
 
 sampling:
-  n_episodes: 60
-  n_states: 1000
-  n_actions: 50
+  n_episodes: 3
+  n_states: 20
+  n_actions: 10
   seed: 0
 
 training:
-  n_members: 3
-  epochs: 30
-  patience: 8
+  n_members: 1
+  epochs: 2
+  patience: 1
   lambda_rank: 5.0
   margin: 0.1
-  batch_size: 256
+  batch_size: 128
   seed_base: 0
   torch_threads: 0
-  out_subdir: tool3
+  out_subdir: tool3_container
 
 planning:
-  horizon: 5
-  top_k: 50
-  mpc_batch_size: 1024
+  horizon: 2
+  top_k: 5
+  mpc_batch_size: 128
   n_episodes: 1
   continuation: random
   scoring: reward
   threads: 0
   seed_offset: 0
+  constraints:
+    cultivated_area_floor_delta_ha: 0
+    baimu_area_floor_delta_ha: 0
 
 reward:
   slope_weight: 4100.0

@@ -867,7 +867,9 @@ def _labels_from_reference_layer(
     sampled = (
         dltb_local.groupby("_prefix9", group_keys=False)
         .apply(lambda g: g.sample(min(len(g), MAX_SAMPLE_PER_PREFIX), random_state=0))
+        .reset_index(drop=True)
     )
+    sampled["_prefix9"] = sampled[qsdwdm_field].astype(str).str[:9]
     sampled = sampled.to_crs(proj_crs)
     sampled.geometry = sampled.geometry.centroid
     sampled = sampled.to_crs(ref.crs)

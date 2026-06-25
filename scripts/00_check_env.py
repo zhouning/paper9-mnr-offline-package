@@ -13,6 +13,7 @@ sys.path.insert(0, str(SRC))
 
 LIGHT_IMPORTS = ("yaml", "paper9_mnr")
 FULL_IMPORTS = ("typer", "numpy", "pandas", "geopandas", "rasterio", "torch", "onnxruntime")
+NOTEBOOK_IMPORTS = ("jupyterlab", "matplotlib")
 
 
 def _check_import(name: str) -> tuple[str, bool, str]:
@@ -27,17 +28,20 @@ def _check_import(name: str) -> tuple[str, bool, str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Check the Paper9 MNR offline package environment.")
     parser.add_argument("--no-heavy", action="store_true", help="Skip GIS, torch, and ONNX imports.")
+    parser.add_argument("--include-notebook", action="store_true", help="Check optional notebook dependencies.")
     args = parser.parse_args()
 
     print(f"package_root={ROOT}")
     print(f"src={SRC}")
     print(f"python={sys.version.split()[0]}")
 
-    for rel in ("src/paper9_mnr", "src/farmland_mpc", "configs", "scripts", "docs", "wheelhouse"):
+    for rel in ("src/paper9_mnr", "src/farmland_mpc", "configs", "scripts", "docs", "notebooks", "wheelhouse"):
         path = ROOT / rel
         print(f"{rel}: {'OK' if path.exists() else 'MISSING'}")
 
     imports = LIGHT_IMPORTS if args.no_heavy else LIGHT_IMPORTS + FULL_IMPORTS
+    if args.include_notebook:
+        imports = imports + NOTEBOOK_IMPORTS
     failed = []
     for name in imports:
         pkg, ok, detail = _check_import(name)
@@ -53,5 +57,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
 

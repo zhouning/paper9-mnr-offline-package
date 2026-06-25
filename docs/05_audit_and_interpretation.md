@@ -29,6 +29,33 @@ python scripts\05_audit.py configs\real_data_from_authority_slope.yml --write
 - 变更图斑数量、面积和地类转移矩阵。
 - 是否满足无净损约束。
 
+`outputs/plan_baseline/mpc_summary.json` 已记录本次 MPC 的核心摘要，包括平均坡度变化、
+连片性变化、百亩方面积变化、输入图斑数、进入环境的图斑数、耕地转林地数量、
+林地转耕地数量和不变数量。
+
+## 优化矢量成果解释
+
+对外主要空间成果为配置中的 `outputs.optimized_vector`，默认是：
+
+```text
+outputs/plan_baseline/DLTB_optimized.shp
+```
+
+该文件保留原始 DLTB 属性，并新增：
+
+- `ORIG_DLBM`: 原始地类编码。
+- `OPT_DLBM`: 优化建议后的地类编码。
+- `OPT_DLMC`: 优化建议后的地类名称。
+- `CHG_FLAG`: 0=不变，1=耕地转林地，2=林地转耕地。
+
+客户验收时应至少抽查：
+
+- `DLBM` 与 `ORIG_DLBM` 是否一致。
+- `OPT_DLBM` 是否只在允许优化的图斑上变化。
+- `CHG_FLAG` 与 `ORIG_DLBM/OPT_DLBM` 是否一致。
+- 输出图斑数是否与输入 DLTB 图斑数一致。
+- 未进入县域环境的图斑是否按原地类透传。
+
 ## 空间叠加审计
 
 与自然资源部真实业务结合时，应叠加：
@@ -41,4 +68,3 @@ python scripts\05_audit.py configs\real_data_from_authority_slope.yml --write
 
 输出方案不能只看 reward；必须能解释“哪些图斑改了、为什么改、是否违反硬约束、
 对业务指标有什么影响”。
-

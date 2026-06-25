@@ -64,6 +64,10 @@ def prepare(
         help="Block max parcels before subdivision (Paper 3 default 30)"),
     min_parcels_per_township: int = typer.Option(50, "--min-parcels-per-township",
         help="Drop townships with fewer parcels (border artifacts). Lower for small test data."),
+    reference_layer: Optional[Path] = typer.Option(None, "--reference-layer",
+        help="Optional administrative polygon layer used to label township codes."),
+    reference_name_field: str = typer.Option("乡", "--reference-name-field",
+        help="Name field in --reference-layer used for township labels."),
     slope_method: str = typer.Option("auto", "--slope-method",
         help="auto | gradient_geographic | horn_projected | from_field. "
              "'auto' picks gradient_geographic for geographic DEMs (e.g. EPSG:4326 Copernicus tiles), "
@@ -96,6 +100,8 @@ def prepare(
         min_area_ha=min_area_ha,
         max_parcels=max_parcels,
         min_parcels_per_township=min_parcels_per_township,
+        reference_layer=reference_layer,
+        reference_name_field=reference_name_field,
     )
     if skip_blocks:
         typer.echo(f"Phase A done -> {out_path}")

@@ -72,6 +72,17 @@ def test_prepare_args_use_authority_slope_field():
     assert _value_after(args, "--bsm-field") == "BSM"
 
 
+def test_prepare_args_include_admin_reference_layer():
+    cfg = _config()
+    cfg["data"]["admin_units"] = "data/input/admin_units.gpkg"
+    cfg["fields"]["admin_name"] = "XZQMC"
+
+    args = build_prepare_args(cfg)
+
+    assert _value_after(args, "--reference-layer") == "data/input/admin_units.gpkg"
+    assert _value_after(args, "--reference-name-field") == "XZQMC"
+
+
 def test_sample_args_forward_reward_overrides_for_calibration():
     args = build_sample_args(_config())
 
@@ -108,3 +119,11 @@ def test_full_stage_commands_keep_sample_and_train_before_plan():
     assert "train" in commands["train"]
     assert "plan" in commands["plan"]
 
+
+def test_stage_commands_can_use_current_python_executable():
+    commands = build_stage_commands(_config(), python_executable="/opt/conda/envs/paper9/bin/python")
+
+    assert commands["prepare"][0] == "/opt/conda/envs/paper9/bin/python"
+    assert commands["sample"][0] == "/opt/conda/envs/paper9/bin/python"
+    assert commands["train"][0] == "/opt/conda/envs/paper9/bin/python"
+    assert commands["plan"][0] == "/opt/conda/envs/paper9/bin/python"

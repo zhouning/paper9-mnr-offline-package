@@ -39,6 +39,9 @@ def build_prepare_args(config: Mapping[str, Any]) -> list[str]:
     _append_optional(args, "--min-area-ha", prep.get("min_area_ha"))
     _append_optional(args, "--max-parcels", prep.get("max_parcels"))
     _append_optional(args, "--min-parcels-per-township", prep.get("min_parcels_per_township"))
+    _append_optional(args, "--reference-layer", data.get("admin_units"))
+    if data.get("admin_units"):
+        _append_optional(args, "--reference-name-field", fields.get("admin_name", "XZQMC"))
     return args
 
 
@@ -132,13 +135,13 @@ def build_plan_args(config: Mapping[str, Any]) -> list[str]:
     return args
 
 
-def build_stage_commands(config: Mapping[str, Any]) -> dict[str, list[str]]:
+def build_stage_commands(config: Mapping[str, Any], python_executable: str = "python") -> dict[str, list[str]]:
     """Return runnable Python module commands for all stages."""
     return {
-        "prepare": _module_command(build_prepare_args(config)),
-        "sample": _module_command(build_sample_args(config)),
-        "train": _module_command(build_train_args(config)),
-        "plan": _module_command(build_plan_args(config)),
+        "prepare": _module_command(build_prepare_args(config), python_executable),
+        "sample": _module_command(build_sample_args(config), python_executable),
+        "train": _module_command(build_train_args(config), python_executable),
+        "plan": _module_command(build_plan_args(config), python_executable),
     }
 
 
@@ -147,11 +150,10 @@ def format_command(command: list[str]) -> str:
     return " ".join(shlex.quote(str(part)) for part in command)
 
 
-def _module_command(stage_args: list[str]) -> list[str]:
-    return ["python", "-m", "farmland_mpc.cli", *stage_args]
+def _module_command(stage_args: list[str], python_executable: str = "python") -> list[str]:
+    return [python_executable, "-m", "farmland_mpc.cli", *stage_args]
 
 
 def _append_optional(args: list[str], flag: str, value: object) -> None:
     if value is not None:
         args.extend([flag, str(value)])
-

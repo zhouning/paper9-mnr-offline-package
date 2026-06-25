@@ -23,7 +23,7 @@ def run(stage: str) -> int:
 
     config = load_config(args.config)
     validate_config(config)
-    command = build_stage_commands(config)[stage]
+    command = build_stage_commands(config, python_executable=sys.executable)[stage]
     print(format_command(command))
     if args.dry_run:
         return 0
@@ -31,4 +31,3 @@ def run(stage: str) -> int:
     env["PYTHONPATH"] = str(SRC) + os.pathsep + env.get("PYTHONPATH", "")
     completed = subprocess.run(command, cwd=str(ROOT), env=env, check=False)
     return completed.returncode
-

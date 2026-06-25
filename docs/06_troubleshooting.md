@@ -27,6 +27,38 @@ slope:
 
 如果部里字段名不是 `slope_mean`，改为真实字段名。
 
+## dry-run 中没有 `--reference-layer`
+
+正式自然资源部输入应包含村级行政区图层。检查配置是否包含：
+
+```yaml
+data:
+  admin_units: data/input/admin_units.gpkg
+
+fields:
+  admin_name: XZQMC
+```
+
+然后重新运行：
+
+```powershell
+python scripts\run_full_pipeline.py <config> --dry-run
+```
+
+`prepare` 命令应出现 `--reference-layer` 和 `--reference-name-field`。
+
+## 行政区名称没有正确映射
+
+常见原因：
+
+- 行政区图层没有 `XZQDM` 或名称字段。
+- `fields.admin_name` 与真实名称字段不一致。
+- DLTB 的 `QSDWDM` 前缀与行政区 `XZQDM` 编码体系不一致。
+- 行政区图层没有覆盖 DLTB 项目区。
+- 行政区图层或 DLTB 缺失 CRS，导致空间匹配失败。
+
+优先确认 `data/working/prepared/townships.json` 中的名称是否来自行政参考层。
+
 ## Phase B 生成 0 个 block
 
 常见原因：
@@ -52,4 +84,3 @@ python scripts\04_plan.py <config>
 
 建议使用 Python 3.11。当前工程元数据限定为 `>=3.11,<3.13`，因为 GIS 和 Torch 依赖
 在 Python 3.11 上最稳。
-

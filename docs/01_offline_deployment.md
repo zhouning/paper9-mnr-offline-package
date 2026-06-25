@@ -3,6 +3,10 @@
 目标环境是不依赖 ArcGIS Pro / arcpy 的内网 Python 环境。Paper9 核心已经复制到
 `src/farmland_mpc`，新增的 `src/paper9_mnr` 只负责配置校验和流程编排。
 
+如果目标 Linux 机器没有任何 Python/conda/GDAL/Torch 环境且完全不能联网，当前仓库
+目录本身不能拷贝后直接运行。必须同时交付 Linux 运行时包，例如 conda-pack 生成的
+完整环境归档。具体见 `docs/10_linux_airgap_bundle.md`。
+
 ## 推荐环境
 
 - Windows 10/11 或 Windows Server
@@ -39,8 +43,11 @@ ONNX Runtime。
 
 ## 目录约定
 
-- `data/input/`: 放入真实 DLTB、三区三线、土壤质量等输入数据。
+- `data/input/`: 放入自然资源部提供的两类必需业务输入：
+  `DLTB_with_authority_slope.gpkg` 和 `admin_units.gpkg`。如使用
+  `slope.source: field`，`DEM_placeholder.tif` 只是接口占位文件。
 - `data/working/`: 中间成果，包括 prepared 目录、采样数据、模型。
 - `outputs/`: 规划结果、审计报告和对外汇报材料。
 - `configs/`: 每次试验的配置文件，应作为可追溯记录保存。
 
+客户侧完整运行说明见 `docs/09_mnr_customer_runbook.md`。

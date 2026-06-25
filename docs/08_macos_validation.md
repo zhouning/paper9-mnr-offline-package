@@ -33,6 +33,16 @@ python -m pytest tests -q
 python scripts/run_full_pipeline.py configs/real_data_from_authority_slope.yml --dry-run
 ```
 
+如使用本机代理数据验证自然资源部两类输入结构，可参考：
+
+```bash
+python scripts/run_full_pipeline.py configs/local_macos_mnr_proxy.yml
+python scripts/05_audit.py configs/local_macos_mnr_proxy.yml --write
+```
+
+`configs/local_macos_mnr_proxy.yml` 使用本地 DLTB 坡度数据和由 DLTB 权属代码 dissolve
+得到的代理行政区图层，只用于验证接口和流程，不可替代正式自然资源部权威行政区数据。
+
 ## 再做完整环境验证
 
 ```bash
@@ -40,6 +50,8 @@ python scripts/00_check_env.py
 ```
 
 这一步会导入 GeoPandas、Rasterio、Torch 和 ONNX Runtime。只有完整环境检查通过后，再移动真实数据到 `data/input/` 并运行 `prepare/sample/train/plan`。
+
+正式数据要求和客户运行步骤见 `docs/09_mnr_customer_runbook.md`。
 
 ## macOS 路径注意事项
 

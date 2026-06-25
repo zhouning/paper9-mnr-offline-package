@@ -6,6 +6,7 @@ crs: EPSG:32648
 
 data:
   dltb: data/input/DLTB_with_authority_slope.gpkg
+  admin_units: data/input/admin_units.gpkg
   dem: data/input/DEM_placeholder.tif
   prepared_dir: data/working/prepared_no_net_loss
 
@@ -13,6 +14,7 @@ fields:
   dlbm: DLBM
   qsdwdm: QSDWDM
   bsm: BSM
+  admin_name: XZQMC
 
 slope:
   source: field
@@ -67,4 +69,3 @@ reward:
 
 workflow:
   force_resample_and_retrain_on_reward_change: true
-
