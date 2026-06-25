@@ -67,4 +67,7 @@ docs/13_notebook_and_logs.md.
 For the current dual-mode container image runbook covering command-line batch
 mode and Notebook extension mode, see docs/14_dual_mode_image_usage.md.
 
+For the current handoff notes, reproducibility evidence, and next onsite
+deployment actions, see docs/15_current_handoff.md.
+
 For validation on a faster macOS workstation, see docs/08_macos_validation.md.
