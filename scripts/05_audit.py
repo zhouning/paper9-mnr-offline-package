@@ -16,7 +16,7 @@ from paper9_mnr.audit import build_audit_summary
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Audit expected Paper9 workflow outputs.")
-    parser.add_argument("config", nargs="?", default=str(ROOT / "configs" / "real_data_from_authority_slope.yml"))
+    parser.add_argument("config", nargs="?", default=str(ROOT / "configs" / "paper9v2_no_net_loss_authority_slope.yml"))
     parser.add_argument("--write", action="store_true", help="Write outputs/audit_summary.json.")
     args = parser.parse_args()
 

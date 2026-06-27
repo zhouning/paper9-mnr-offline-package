@@ -37,8 +37,8 @@ def _build_run_metadata(config: dict[str, object]) -> dict[str, object]:
         algorithm = {}
     return {
         "package_version": PACKAGE_VERSION,
-        "algorithm_name": algorithm.get("name", ALGORITHM_NAME),
-        "algorithm_version": algorithm.get("version", ALGORITHM_VERSION),
+        "algorithm_name": algorithm.get("name", ""),
+        "algorithm_version": algorithm.get("version", ""),
         "image_ref": os.environ.get("PAPER9_IMAGE_REF", ""),
     }
 
@@ -85,7 +85,7 @@ def _run_and_tee(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run the full Paper9 offline workflow.")
-    parser.add_argument("config", nargs="?", default=str(ROOT / "configs" / "real_data_from_authority_slope.yml"))
+    parser.add_argument("config", nargs="?", default=str(ROOT / "configs" / "paper9v2_no_net_loss_authority_slope.yml"))
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
         "--log-dir",

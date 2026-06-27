@@ -28,6 +28,26 @@ def test_build_run_metadata_uses_config_algorithm_and_image_ref(monkeypatch):
     assert metadata["image_ref"] == "paper9-mnr-offline:paper9v2-2.0.0-amd64"
 
 
+def test_build_run_metadata_does_not_label_legacy_config_as_paper9v2(monkeypatch):
+    module = _load_run_full_pipeline_module()
+    monkeypatch.delenv("PAPER9_IMAGE_REF", raising=False)
+
+    metadata = module._build_run_metadata({})
+
+    assert metadata["package_version"] == "0.2.0"
+    assert metadata["algorithm_name"] == ""
+    assert metadata["algorithm_version"] == ""
+    assert metadata["image_ref"] == ""
+
+
+def test_run_and_audit_scripts_default_to_paper9v2_config():
+    run_script = (PACKAGE_ROOT / "scripts/run_full_pipeline.py").read_text(encoding="utf-8")
+    audit_script = (PACKAGE_ROOT / "scripts/05_audit.py").read_text(encoding="utf-8")
+
+    assert 'default=str(ROOT / "configs" / "paper9v2_no_net_loss_authority_slope.yml")' in run_script
+    assert 'default=str(ROOT / "configs" / "paper9v2_no_net_loss_authority_slope.yml")' in audit_script
+
+
 def test_build_full_pipeline_commands_append_audit_gate():
     module = _load_run_full_pipeline_module()
     config = {
@@ -39,7 +59,7 @@ def test_build_full_pipeline_commands_append_audit_gate():
         },
         "fields": {"dlbm": "DLBM", "qsdwdm": "QSDWDM", "bsm": "BSM"},
         "slope": {"source": "field", "field": "slope_mean"},
-        "outputs": {"plan_dir": "outputs/plan", "optimized_vector": "outputs/plan/DLTB_optimized.gpkg"},
+        "outputs": {"plan_dir": "outputs/plan", "optimized_vector": "outputs/plan/DLTB_optimized.shp"},
         "sampling": {"n_episodes": 1, "n_states": 2, "n_actions": 3, "seed": 0},
         "training": {"n_members": 1, "epochs": 1, "patience": 1, "lambda_rank": 1.0},
         "planning": {

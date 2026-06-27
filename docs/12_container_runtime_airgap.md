@@ -31,14 +31,14 @@ Ubuntu/openEuler/Kylin 等其他发行版的包直接混用到 deepin server 16�
 按目标 CPU 架构和 Linux 发行版分别准备交付包。例如：
 
 ```text
-paper9-mnr-container-runtime-amd64.tar.gz
-paper9-mnr-container-runtime-arm64.tar.gz
+paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
+paper9-mnr-container-runtime-paper9v2-2.0.0-arm64.tar.gz
 ```
 
 解压后建议包含：
 
 ```text
-paper9-mnr-container-runtime-amd64/
+paper9-mnr-container-runtime-paper9v2-2.0.0-amd64/
   images/
     paper9-mnr-offline-linux-amd64.tar
   runtime-packages/
@@ -64,7 +64,7 @@ deploy/container-runtime/package-container-runtime-bundle.sh \
   --arch amd64 \
   --image-tar dist/paper9-mnr-offline-linux-amd64.tar \
   --runtime-packages-dir /path/to/docker-or-podman-packages \
-  --out dist/paper9-mnr-container-runtime-amd64.tar.gz
+  --out dist/paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
 ```
 
 arm64 改为：
@@ -74,7 +74,7 @@ deploy/container-runtime/package-container-runtime-bundle.sh \
   --arch arm64 \
   --image-tar dist/paper9-mnr-offline-linux-arm64.tar \
   --runtime-packages-dir /path/to/docker-or-podman-packages \
-  --out dist/paper9-mnr-container-runtime-arm64.tar.gz
+  --out dist/paper9-mnr-container-runtime-paper9v2-2.0.0-arm64.tar.gz
 ```
 
 ## 目标内网机器安装容器运行时
@@ -82,8 +82,8 @@ deploy/container-runtime/package-container-runtime-bundle.sh \
 解压交付包：
 
 ```bash
-tar -xzf paper9-mnr-container-runtime-amd64.tar.gz
-cd paper9-mnr-container-runtime-amd64
+tar -xzf paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
+cd paper9-mnr-container-runtime-paper9v2-2.0.0-amd64
 ```
 
 安装 Docker：
@@ -189,7 +189,7 @@ Notebook 模式使用同样的数据挂载，交互地图写到 `/data/paper9/ou
 - `run-paper9-container.sh check` 通过环境检查、测试和配置检查。
 - `run-paper9-container.sh dry-run` 打印的 prepare 命令包含 `--reference-layer`。
 - `run-paper9-container.sh dry-run` 打印的 sample 和 plan 命令均包含 `--cultivated-area-floor-delta-ha 0`。
-- `run-paper9-container.sh run` 生成 `outputs/plan_paper9v2_no_net_loss/DLTB_optimized.gpkg`，
+- `run-paper9-container.sh run` 生成 `outputs/plan_paper9v2_no_net_loss/DLTB_optimized.shp`，
   写出 `outputs/audit_summary.json`，并通过 Paper9v2 三项硬门禁。
 - `run-paper9-container.sh audit` 可对既有产物重复执行同一套审计。
 - `outputs/logs/` 中存在 run manifest 和各阶段日志。

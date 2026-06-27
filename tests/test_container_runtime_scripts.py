@@ -38,8 +38,9 @@ def test_container_runtime_wrapper_supports_full_image_ref():
 
     assert "--image-ref REF" in script
     assert 'image_ref="${2:-}"' in script
-    assert 'tag="${image_ref:-$image:$arch}"' in script
+    assert 'tag="${image_ref:-$image:paper9v2-2.0.0-$arch}"' in script
     assert 'PAPER9_IMAGE_REF="$tag"' in script
+    assert "paper9-mnr-offline:paper9v2-2.0.0-amd64" in script
 
 
 def test_container_runtime_wrapper_defaults_to_paper9v2_config():

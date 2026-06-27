@@ -33,10 +33,10 @@ Options:
   --notebook-token TOKEN        Jupyter token for notebook mode. Default: paper9.
 
 Examples:
-  ./run-paper9-container.sh check --runtime docker --arch amd64 --image-tar images/paper9-mnr-offline-linux-amd64.tar
-  ./run-paper9-container.sh dry-run --runtime podman --data-root /data/paper9
-  ./run-paper9-container.sh run --runtime docker --config configs/paper9v2_no_net_loss_authority_slope.yml
-  ./run-paper9-container.sh notebook --runtime docker --arch amd64 --config configs/paper9v2_no_net_loss_authority_slope.yml --notebook-port 8888
+  ./run-paper9-container.sh check --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 --image-tar images/paper9-mnr-offline-linux-amd64.tar
+  ./run-paper9-container.sh dry-run --runtime podman --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 --data-root /data/paper9
+  ./run-paper9-container.sh run --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 --config configs/paper9v2_no_net_loss_authority_slope.yml
+  ./run-paper9-container.sh notebook --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 --config configs/paper9v2_no_net_loss_authority_slope.yml --notebook-port 8888
 USAGE
 }
 
@@ -166,7 +166,7 @@ outputs_dir="${outputs_dir:-$data_root/outputs}"
 
 mkdir -p "$input_dir" "$working_dir" "$outputs_dir"
 
-tag="${image_ref:-$image:$arch}"
+tag="${image_ref:-$image:paper9v2-2.0.0-$arch}"
 
 if [ -n "$image_tar" ]; then
   [ -f "$image_tar" ] || die "image tar not found: $image_tar"

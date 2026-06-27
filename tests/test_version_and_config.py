@@ -24,6 +24,7 @@ def test_paper9v2_no_net_loss_config_validates_with_cultivated_area_floor_only()
     constraints = config["planning"]["constraints"]
     assert config["algorithm"] == {"name": ALGORITHM_NAME, "version": ALGORITHM_VERSION}
     assert config["slope"]["field"] == "slope_mean"
+    assert config["outputs"]["optimized_vector"].endswith(".shp")
     assert constraints["cultivated_area_floor_delta_ha"] == 0
     assert "baimu_area_floor_delta_ha" not in constraints
 
@@ -41,6 +42,14 @@ def test_paper9v2_config_rejects_negative_cultivated_area_floor_delta():
     config["planning"]["constraints"]["cultivated_area_floor_delta_ha"] = -0.01
 
     with pytest.raises(ConfigError, match="must be >= 0"):
+        validate_config(config)
+
+
+def test_paper9v2_config_rejects_non_shapefile_optimized_vector():
+    config = load_config(PACKAGE_ROOT / "configs/paper9v2_no_net_loss_authority_slope.yml")
+    config["outputs"]["optimized_vector"] = "outputs/plan_paper9v2_no_net_loss/DLTB_optimized.gpkg"
+
+    with pytest.raises(ConfigError, match="optimized_vector must end with .shp"):
         validate_config(config)
 
 

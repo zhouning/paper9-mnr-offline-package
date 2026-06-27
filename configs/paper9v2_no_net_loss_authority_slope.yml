@@ -32,7 +32,7 @@ preparation:
 
 outputs:
   plan_dir: outputs/plan_paper9v2_no_net_loss
-  optimized_vector: outputs/plan_paper9v2_no_net_loss/DLTB_optimized.gpkg
+  optimized_vector: outputs/plan_paper9v2_no_net_loss/DLTB_optimized.shp
 
 sampling:
   n_episodes: 60

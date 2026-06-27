@@ -331,7 +331,7 @@ YYYYMMDD-HHMMSS-audit.log
 默认正式成果：
 
 ```text
-/data/paper9/outputs/plan_paper9v2_no_net_loss/DLTB_optimized.gpkg
+/data/paper9/outputs/plan_paper9v2_no_net_loss/DLTB_optimized.shp
 /data/paper9/outputs/plan_paper9v2_no_net_loss/mpc_summary.json
 /data/paper9/outputs/audit_summary.json
 ```
@@ -344,7 +344,7 @@ Notebook 导出的离线交互地图：
 ```
 
 这些 HTML 地图用于现场解释和核查，默认对展示图层采样并压缩坐标精度；正式矢量成果
-`DLTB_optimized.gpkg` 不会因此被抽样或简化。
+`DLTB_optimized.shp` 不会因此被抽样或简化。
 
 ## 常见问题
 

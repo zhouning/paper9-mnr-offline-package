@@ -32,7 +32,7 @@ def _config() -> dict:
         "slope": {"source": "field", "field": "authority_slope"},
         "outputs": {
             "plan_dir": "outputs/plan",
-            "optimized_vector": "outputs/plan/DLTB_optimized.gpkg",
+            "optimized_vector": "outputs/plan/DLTB_optimized.shp",
         },
         "sampling": {"n_episodes": 60, "n_states": 1000, "n_actions": 50, "seed": 7},
         "training": {"n_members": 3, "epochs": 30, "patience": 8, "lambda_rank": 5.0},
@@ -120,7 +120,7 @@ def test_plan_args_include_no_net_loss_constraints():
 
     assert _value_after(args, "--cultivated-area-floor-delta-ha") == "0"
     assert "--baimu-area-floor-delta-ha" not in args
-    assert _value_after(args, "--output-shp") == "outputs/plan/DLTB_optimized.gpkg"
+    assert _value_after(args, "--output-shp") == "outputs/plan/DLTB_optimized.shp"
 
 
 def test_full_stage_commands_keep_sample_and_train_before_plan():

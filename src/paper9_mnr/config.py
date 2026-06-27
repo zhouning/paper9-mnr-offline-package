@@ -73,6 +73,9 @@ def validate_config(config: Mapping[str, Any]) -> None:
                 raise ConfigError("planning.constraints.cultivated_area_floor_delta_ha must be numeric.")
             if float(floor_delta) < 0:
                 raise ConfigError("planning.constraints.cultivated_area_floor_delta_ha must be >= 0.")
+            optimized_vector = Path(str(_as_mapping(config["outputs"], "outputs")["optimized_vector"]))
+            if optimized_vector.suffix.lower() != ".shp":
+                raise ConfigError("outputs.optimized_vector must end with .shp for paper9v2.")
 
     slope = _as_mapping(config["slope"], "slope")
     source = slope.get("source")

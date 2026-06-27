@@ -162,7 +162,7 @@ def test_plan_args_include_paper9v2_cultivated_area_floor_only():
 
     assert _value_after(args, "--cultivated-area-floor-delta-ha") == "0"
     assert "--baimu-area-floor-delta-ha" not in args
-    assert _value_after(args, "--output-shp") == "outputs/plan/DLTB_optimized.gpkg"
+    assert _value_after(args, "--output-shp") == "outputs/plan/DLTB_optimized.shp"
 ```
 
 - [ ] **Step 2: Run config and command-builder tests to verify failure**
