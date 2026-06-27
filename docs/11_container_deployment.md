@@ -34,6 +34,53 @@ images/paper9-mnr-offline-linux-amd64.tar
 
 `arm64` 包仍保留给其他 ARM 服务器使用，但不是这三台 deepin x86_64 机器的默认包。
 
+## Paper9v2 发布基线
+
+当前部署使用 Paper9v2 业务约束版，默认配置为：
+
+```text
+configs/paper9v2_no_net_loss_authority_slope.yml
+```
+
+发布和验收命令应显式使用不可变镜像引用，不使用历史 `paper9-mnr-offline:amd64` /
+`paper9-mnr-offline:arm64` 作为 Paper9v2 口径：
+
+| 项 | amd64 | arm64 |
+| --- | --- | --- |
+| 镜像引用 | `paper9-mnr-offline:paper9v2-2.0.0-amd64` | `paper9-mnr-offline:paper9v2-2.0.0-arm64` |
+| 镜像 tar | `images/paper9-mnr-offline-linux-amd64.tar` | `images/paper9-mnr-offline-linux-arm64.tar` |
+| 容器运行时整包 | `paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz` | `paper9-mnr-container-runtime-paper9v2-2.0.0-arm64.tar.gz` |
+| 目标场景 | 当前 deepin x86_64 现场默认 | 其他 ARM 服务器 |
+
+镜像标签应包含以下元数据，运行报告和 run manifest 也应记录同一口径：
+
+| 元数据 | 当前值 |
+| --- | --- |
+| Python 包版本 | `0.2.0` |
+| 算法名 | `paper9v2` |
+| 算法版本 | `2.0.0` |
+| 镜像 revision | `a58fa3ad15c9` |
+| 默认配置 | `configs/paper9v2_no_net_loss_authority_slope.yml` |
+
+Paper9v2 的 audit hard gate：
+
+- 县域范围内耕地总面积不减少：`cultivated_area_change_ha >= 0`。
+- 耕地平均坡度降低：`slope_change_pct < 0`。
+- 连片度上升：`cont_change > 0`。
+- 百亩方数量和面积需要报告并尽量提升，但默认不是 hard gate。
+
+最新 Docker E2E 验证报告见
+`docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md`。本次已完成东兴与璧山
+两套数据的 `prepare -> sample -> train -> plan -> audit` 全流程：
+
+| 数据集 | run_id | 镜像 | 总用时 | audit 结果 | 关键业务结果 |
+| --- | --- | --- | ---: | --- | --- |
+| 东兴 | `20260627-155224` | `paper9-mnr-offline:paper9v2-2.0.0-arm64` | 4044.299s | 通过 | 耕地 +508.783 ha，坡度 -0.3431%，连片度 +0.0530 |
+| 璧山 | `20260627-170016` | `paper9-mnr-offline:paper9v2-2.0.0-arm64` | 2919.626s | 通过 | 耕地 +4.323 ha，坡度 -0.8564%，连片度 +0.0268 |
+
+说明：本次本机正式 E2E 使用 Apple Silicon 原生 `arm64` 镜像；客户 deepin x86_64 现场仍使用
+`amd64` 包和 `paper9-mnr-offline:paper9v2-2.0.0-amd64` 镜像引用。
+
 ## 镜像边界
 
 镜像包含：
@@ -282,4 +329,6 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 - 使用 Paper9v2 配置完成至少一次 `configs/paper9v2_no_net_loss_authority_slope.yml` 完整 smoke。
 - 正式数据运行后，`run_full_pipeline.py` 的 manifest 包含 `audit` 阶段，`outputs/audit_summary.json`
   显示关键成果均存在，且 Paper9v2 硬门禁通过。
+- `outputs/plan_paper9v2_no_net_loss/mpc_summary.json` 至少记录耕地面积变化、坡度变化、连片度变化、
+  百亩方数量/面积变化和完成置换数；这些数值应写入现场验收报告。
 - 如启用 Notebook 扩展模式，`/app/notebooks` 能打开，交互地图能写入 `outputs/notebook/`。

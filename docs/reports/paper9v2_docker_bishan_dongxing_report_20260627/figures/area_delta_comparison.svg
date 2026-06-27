@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="300" viewBox="0 0 980 300">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="210" y="32" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#111827">Area Delta</text>
+<text x="210" y="55" font-family="Arial, sans-serif" font-size="12" fill="#6B7280">Unit: ha; center line is 0</text>
+<line x1="560" y1="60" x2="560" y2="265" stroke="#9CA3AF" stroke-width="1"/>
+<text x="24" y="90" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">DX</text>
+<text x="198" y="90" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="#374151">cultivated ha</text>
+<rect x="560.0" y="75" width="218.9" height="18" rx="3" fill="#10B981"/>
+<text x="786.9" y="89" text-anchor="start" font-family="Arial, sans-serif" font-size="12" fill="#111827">+508.8</text>
+<text x="198" y="124" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="#374151">baimu ha</text>
+<rect x="560.0" y="109" width="330.0" height="18" rx="3" fill="#10B981"/>
+<text x="898.0" y="123" text-anchor="start" font-family="Arial, sans-serif" font-size="12" fill="#111827">+766.9</text>
+<text x="24" y="180" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">BS</text>
+<text x="198" y="180" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="#374151">cultivated ha</text>
+<rect x="560.0" y="165" width="1.9" height="18" rx="3" fill="#10B981"/>
+<text x="569.9" y="179" text-anchor="start" font-family="Arial, sans-serif" font-size="12" fill="#111827">+4.323</text>
+<text x="198" y="214" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="#374151">baimu ha</text>
+<rect x="560.0" y="199" width="14.9" height="18" rx="3" fill="#10B981"/>
+<text x="582.9" y="213" text-anchor="start" font-family="Arial, sans-serif" font-size="12" fill="#111827">+34.6</text>
+</svg>

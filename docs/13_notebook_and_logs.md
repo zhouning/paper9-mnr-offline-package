@@ -17,6 +17,8 @@ Notebook 不是正式运行的唯一入口。正式生产运行仍建议使用
 runtime = docker
 arch = amd64
 data_root = /data/paper9
+image_ref = paper9-mnr-offline:paper9v2-2.0.0-amd64
+config = configs/paper9v2_no_net_loss_authority_slope.yml
 ```
 
 ## Notebook 启动
@@ -27,7 +29,8 @@ data_root = /data/paper9
 ./bin/run-paper9-container.sh notebook \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9 \
   --notebook-port 8888 \
   --notebook-token paper9
@@ -61,17 +64,17 @@ http://127.0.0.1:8888/lab?token=paper9
 这些 notebook 读取同一份配置：
 
 ```text
-configs/real_data_from_authority_slope.yml
+configs/paper9v2_no_net_loss_authority_slope.yml
 ```
 
 Notebook 模式会读取容器环境变量 `PAPER9_CONFIG`。使用
-`run-paper9-container.sh notebook --config configs/container_mnr_proxy.yml` 启动时，wrapper 会把
+`run-paper9-container.sh notebook --config configs/paper9v2_no_net_loss_authority_slope.yml` 启动时，wrapper 会把
 该配置传入 Notebook。
 
 如未通过 wrapper 注入配置，也可以在每个 notebook 的第一个代码单元把 `CONFIG` 改成：
 
 ```python
-CONFIG = "configs/container_mnr_proxy.yml"
+CONFIG = "configs/paper9v2_no_net_loss_authority_slope.yml"
 ```
 
 并使用同样的数据挂载：
@@ -121,7 +124,18 @@ YYYYMMDD-HHMMSS-prepare.log
 YYYYMMDD-HHMMSS-sample.log
 YYYYMMDD-HHMMSS-train.log
 YYYYMMDD-HHMMSS-plan.log
+YYYYMMDD-HHMMSS-audit.log
 ```
 
 JSON manifest 记录配置文件、每个阶段的命令、开始/结束时间、返回码、阶段日志路径和
 运行状态。现场诊断优先查看 manifest，再按失败阶段打开对应日志。
+
+Paper9v2 的正式 `run` 已把 audit 作为最后阶段。现场解释时重点查看：
+
+```text
+/data/paper9/outputs/audit_summary.json
+/data/paper9/outputs/plan_paper9v2_no_net_loss/mpc_summary.json
+```
+
+`audit_summary.json` 的 `constraint_status.hard_constraint_passed` 必须为 `true`，并且记录中应显示
+耕地面积不减少、平均坡度降低、连片度上升。Notebook 用于解释这些结果，不替代批处理验收。

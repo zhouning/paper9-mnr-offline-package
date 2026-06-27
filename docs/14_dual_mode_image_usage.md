@@ -28,6 +28,29 @@ paper9-mnr-offline:paper9v2-2.0.0-amd64`。`--image-ref` 是 Paper9v2 正式发�
 发布口径。`arm64` 镜像包仍然保留，但仅用于其他 ARM 服务器，不用于当前这三台 deepin
 x86_64 机器；对应正式引用为 `paper9-mnr-offline:paper9v2-2.0.0-arm64`。
 
+## Paper9v2 业务门禁和已验证基线
+
+Paper9v2 的默认配置是 `configs/paper9v2_no_net_loss_authority_slope.yml`。它把以下三项作为
+正式 run/audit 的硬门禁：
+
+| 指标 | 通过条件 | 说明 |
+| --- | --- | --- |
+| 县域耕地总面积 | `cultivated_area_change_ha >= 0` | 县域范围内耕地总面积不减少 |
+| 耕地平均坡度 | `slope_change_pct < 0` | 负值表示平均坡度降低 |
+| 连片度 | `cont_change > 0` | 正值表示连片度上升 |
+| 百亩方 | 报告并尽量提升 | 默认不是 hard gate，需在报告中解释数量和面积变化 |
+
+`run` 动作已经把 audit 放在最后阶段；如果三项硬门禁失败，正式流程应返回失败，不应把结果描述为可采用方案。
+`audit` 动作用于对已有产物重复复核。
+
+本机已用 Paper9v2 Docker 镜像完成东兴和璧山两套数据的全流程 E2E，报告见
+`docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md`。验证摘要：
+
+| 数据集 | run_id | 总用时 | 耕地面积变化 | 坡度变化 | 连片度变化 | audit |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| 东兴 | `20260627-155224` | 4044.299s | +508.783 ha | -0.3431% | +0.0530 | 通过 |
+| 璧山 | `20260627-170016` | 2919.626s | +4.323 ha | -0.8564% | +0.0268 | 通过 |
+
 ## 镜像和数据边界
 
 镜像包含 Python 运行时、Paper9 MNR 代码、配置模板、脚本、文档、测试、JupyterLab 和可视化依赖。
@@ -303,7 +326,8 @@ http://127.0.0.1:8888/lab?token=paper9
 3. 执行 `run-paper9-container.sh check`，确认环境、依赖、测试和配置通过。
 4. 执行 `run-paper9-container.sh dry-run`，确认参数和数据路径正确。
 5. 执行 `run-paper9-container.sh run`，完成 prepare/sample/train/plan。
-6. 执行 `run-paper9-container.sh audit`，确认关键成果存在。
+6. 查看 `outputs/audit_summary.json`，确认三项 hard gate 均通过；必要时再执行
+   `run-paper9-container.sh audit` 对既有产物重复复核。
 7. 如需现场解释，再启动 `run-paper9-container.sh notebook` 查看输入、日志和交互地图。
 
 ## 日志、成果和诊断入口
@@ -335,6 +359,20 @@ YYYYMMDD-HHMMSS-audit.log
 /data/paper9/outputs/plan_paper9v2_no_net_loss/mpc_summary.json
 /data/paper9/outputs/audit_summary.json
 ```
+
+`audit_summary.json` 中重点查看：
+
+```text
+constraint_status.hard_constraint_passed
+constraint_status.records[0].cultivated_area_change_ha
+constraint_status.records[0].slope_change_pct
+constraint_status.records[0].cont_change
+constraint_status.records[0].baimu_count_change
+constraint_status.records[0].baimu_area_change_ha
+```
+
+现场报告至少应记录 run_id、镜像引用、配置文件、各阶段耗时、上述 audit 指标和
+`DLTB_optimized.shp` 产物路径。
 
 Notebook 导出的离线交互地图：
 

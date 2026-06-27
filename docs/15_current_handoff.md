@@ -1,6 +1,6 @@
 # 15 当前工作进度接续说明
 
-更新时间：2026-06-25
+更新时间：2026-06-28
 
 本文用于关闭当前窗口后，在后续窗口继续处理 Paper9 自然资源部离线部署包。本文只记录
 工程状态、验证证据和后续动作，不包含客户真实数据。
@@ -18,15 +18,18 @@
 
 ## 当前镜像和使用方式
 
-- 本机验证镜像：`paper9-mnr-offline:amd64`
-- 本机验证平台参数：`--platform linux/amd64`
+- 当前 Paper9v2 默认配置：`configs/paper9v2_no_net_loss_authority_slope.yml`
+- 当前客户 deepin x86_64 现场默认镜像：`paper9-mnr-offline:paper9v2-2.0.0-amd64`
+- 本机 Apple Silicon 已验证镜像：`paper9-mnr-offline:paper9v2-2.0.0-arm64`
+- Paper9v2 镜像元数据：包版本 `0.2.0`，算法 `paper9v2 2.0.0`，revision `a58fa3ad15c9`
 - 现场运行脚本：`deploy/container-runtime/run-paper9-container.sh`
 - 推荐现场顺序：
   1. `check`
   2. `dry-run`
   3. `run`
-  4. `audit`
-  5. 如需解释和可视化，再启动 `notebook`
+  4. 查看 `outputs/audit_summary.json`
+  5. 如需复核既有产物，再单独执行 `audit`
+  6. 如需解释和可视化，再启动 `notebook`
 
 详细命令以以下文档为准：
 
@@ -37,8 +40,18 @@
 
 ## 正式全量验证口径
 
-本机已按正式参数完成两轮端到端 Docker 验证。使用的是基于
-`configs/real_data_from_authority_slope.yml` 的正式配置，只把输出目录改成独立目录。
+本机已按 Paper9v2 正式参数完成东兴和璧山两套数据的 Docker 端到端验证。使用配置：
+
+```text
+configs/paper9v2_no_net_loss_authority_slope.yml
+```
+
+Paper9v2 的 hard gate 为：
+
+- 县域耕地总面积不减少：`cultivated_area_change_ha >= 0`。
+- 耕地平均坡度降低：`slope_change_pct < 0`。
+- 连片度上升：`cont_change > 0`。
+- 百亩方数量和面积报告并尽量提升，但不是默认 hard gate。
 
 未使用：
 
@@ -58,72 +71,50 @@
 - `planning.top_k: 50`
 - `planning.mpc_batch_size: 1024`
 
-## 两轮全量验证结果
+## Paper9v2 双数据集全量验证结果
 
-第一轮输出目录：
+完整图文报告：
 
-- 日志：`outputs/full_real_data_20260625/logs/`
-- run manifest：`outputs/full_real_data_20260625/logs/run_full_pipeline-20260625-111045.json`
-- 规划摘要：`outputs/full_real_data_20260625/plan/mpc_summary.json`
-- 最终矢量：`outputs/full_real_data_20260625/plan/DLTB_optimized.shp`
+```text
+docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md
+```
 
-第二轮输出目录：
+正式输出目录：
 
-- 日志：`outputs/full_real_data_20260625_run2/logs/`
-- dry-run manifest：`outputs/full_real_data_20260625_run2/logs/run_full_pipeline-20260625-142056.json`
-- run manifest：`outputs/full_real_data_20260625_run2/logs/run_full_pipeline-20260625-142307.json`
-- check-config 日志：`outputs/full_real_data_20260625_run2/logs/check-config-run2-verify.log`
-- audit 日志：`outputs/full_real_data_20260625_run2/logs/audit-run2-verify.log`
-- audit 摘要：`outputs/full_real_data_20260625_run2/audit_summary.json`
-- 规划摘要：`outputs/full_real_data_20260625_run2/plan/mpc_summary.json`
-- 最终矢量：`outputs/full_real_data_20260625_run2/plan/DLTB_optimized.shp`
+- 东兴：`outputs/paper9v2_docker_e2e_20260627/dongxing/`
+- 璧山：`outputs/paper9v2_docker_e2e_20260627/bishan/`
 
-两轮耗时：
+| 数据集 | run_id | 总用时 | prepare | sample | train | plan | audit |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 东兴 | `20260627-155224` | 4044.299s | 76.829s | 2102.909s | 1673.070s | 191.410s | 通过 |
+| 璧山 | `20260627-170016` | 2919.626s | 36.434s | 1632.444s | 1144.977s | 105.687s | 通过 |
 
-| 阶段 | 第一轮 | 第二轮 |
-| --- | ---: | ---: |
-| prepare | 112.008s | 108.913s |
-| sample | 1765.975s | 1757.748s |
-| train | 1482.805s | 1670.922s |
-| plan | 245.508s | 371.855s |
-| total | 3606.304s | 3909.444s |
+核心业务结果：
 
-核心成果两轮一致：
+| 数据集 | 耕地面积变化 | 坡度变化 | 连片度变化 | 百亩方数变化 | 百亩方面积变化 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 东兴 | +508.783 ha | -0.3431% | +0.0530 | -23 | +766.871 ha |
+| 璧山 | +4.323 ha | -0.8564% | +0.0268 | +1 | +34.638 ha |
 
-- `slope_change_pct = -0.4839646431431592`
-- `cont_change = 0.04298771154939418`
-- `baimu_area_change_ha = 257.98083532556296`
-- `baimu_count_change = -1`
-- `swaps_completed = 458`
-- `cultivated_area_change_ha = 27.712161006724834`
-- `cultivated_area_change_pct = 0.0354532918460902`
-- 输入图斑数 `134369`
-- 进入环境图斑数 `76377`
-- pass-through 图斑数 `57992`
-- farm->forest `458`
-- forest->farm `458`
+产物入口：
 
-二进制产物哈希对比结论：
-
-- `transitions.npz` 一致
-- `pairwise.npz` 一致
-- 3 个 `ensemble_member*.onnx` 一致
-- 3 个 `ensemble_member*.pt` 一致
-- `mpc_land_use.npy` 一致
-- `DLTB_optimized.shp/.dbf/.shx/.prj` 一致
-
-`mpc_summary.json` 和日志文件的文件哈希不同，原因是运行目录、开始结束时间和耗时字段不同；
-核心业务指标一致。
+- run manifest：`outputs/paper9v2_docker_e2e_20260627/{dongxing,bishan}/logs/run_full_pipeline-*.json`
+- audit：`outputs/paper9v2_docker_e2e_20260627/{dongxing,bishan}/audit_summary.json`
+- MPC 摘要：`outputs/paper9v2_docker_e2e_20260627/{dongxing,bishan}/plan_paper9v2_no_net_loss/mpc_summary.json`
+- 最终矢量：`outputs/paper9v2_docker_e2e_20260627/{dongxing,bishan}/plan_paper9v2_no_net_loss/DLTB_optimized.shp`
 
 ## 已知 warning
 
-两轮日志中出现的 warning 类型一致，目前均未导致阶段失败：
+Paper9v2 双数据集 E2E 日志中出现的 warning 类型一致，目前均未导致阶段失败：
 
-- Shapefile/DBF 字段名被截断，例如 `source_index -> source_ind`。
-- 1 个图斑数不足阈值的乡镇被丢弃。
+- Shapefile/DBF 字段名被截断，例如 `SHAPE_Length -> SHAPE_Leng`。
+- 局部连通图存在 disconnected components / islands。
+- `RuntimeWarning: invalid value encountered in divide`，来自没有有效面积或邻接的块级统计。
 - `511011214` 在 Phase B 中无可用 blocks，被跳过。
-- ONNX version converter 出现 fallback/traceback warning，但训练阶段 returncode 为 `0`，ONNX
-  和 PT 模型文件已生成，且两轮哈希一致。
+- ONNX version converter 出现 fallback/traceback warning，但 6 个 ONNX 成员均完成导出并通过
+  parity 校验，最大差异在 `4.77e-07` 到 `7.15e-07` 量级。
+- plan 阶段会提示 `baimu_area_penalty=3100.0` reward override。当前 sample/train 已使用同一套
+  reward 权重；如果以后临时修改 plan 权重，应重新 sample/train。
 
 现场部署时如果客户要求零 warning，需要优先处理 DBF 字段名截断和空乡镇 blocks 的诊断展示。
 
@@ -141,9 +132,9 @@
 ```bash
 cd /Users/zhouning/paper9-mnr-offline-package
 git status --short
-docker image inspect paper9-mnr-offline:amd64
-ls -lh outputs/full_real_data_20260625_run2/plan
-python3 -m json.tool outputs/full_real_data_20260625_run2/logs/run_full_pipeline-20260625-142307.json
+docker image inspect paper9-mnr-offline:paper9v2-2.0.0-arm64
+ls -lh outputs/paper9v2_docker_e2e_20260627/dongxing/plan_paper9v2_no_net_loss
+python3 -m json.tool outputs/paper9v2_docker_e2e_20260627/dongxing/logs/run_full_pipeline-20260627-155224.json
 ```
 
 ## 后续现场部署关注点

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="305" viewBox="0 0 980 305">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="170" y="32" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#111827">Train Quality</text>
+<text x="170" y="55" font-family="Arial, sans-serif" font-size="12" fill="#6B7280">Unit: metric value</text>
+<text x="24" y="90" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">DX</text>
+<text x="158" y="90" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="#374151">avg ranking acc</text>
+<rect x="170" y="75" width="750" height="18" rx="3" fill="#F3F4F6"/>
+<rect x="170" y="75" width="725.2" height="18" rx="3" fill="#10B981"/>
+<text x="872.0" y="89" font-family="Arial, sans-serif" font-size="12" fill="#111827">0.83</text>
+<text x="158" y="124" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="#374151">min best val loss</text>
+<rect x="170" y="109" width="750" height="18" rx="3" fill="#F3F4F6"/>
+<rect x="170" y="109" width="526.2" height="18" rx="3" fill="#EF4444"/>
+<text x="704.2" y="123" font-family="Arial, sans-serif" font-size="12" fill="#111827">0.60</text>
+<text x="24" y="180" font-family="Arial, sans-serif" font-size="16" font-weight="700" fill="#111827">BS</text>
+<text x="158" y="180" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="#374151">avg ranking acc</text>
+<rect x="170" y="165" width="750" height="18" rx="3" fill="#F3F4F6"/>
+<rect x="170" y="165" width="750.0" height="18" rx="3" fill="#10B981"/>
+<text x="872.0" y="179" font-family="Arial, sans-serif" font-size="12" fill="#111827">0.86</text>
+<text x="158" y="214" text-anchor="end" font-family="Arial, sans-serif" font-size="13" fill="#374151">min best val loss</text>
+<rect x="170" y="199" width="750" height="18" rx="3" fill="#F3F4F6"/>
+<rect x="170" y="199" width="453.7" height="18" rx="3" fill="#EF4444"/>
+<text x="631.7" y="213" font-family="Arial, sans-serif" font-size="12" fill="#111827">0.52</text>
+</svg>

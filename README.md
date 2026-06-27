@@ -1,8 +1,8 @@
 ﻿# Paper9 MNR Offline Package
 
-This package is a standalone, ArcGIS-free engineering bundle for reproducing
-Paper9 and recalibrating it on Ministry of Natural Resources authoritative
-parcel data inside an intranet.
+This package is a standalone, ArcGIS-free engineering bundle for running
+Paper9/Paper9v2 and recalibrating it on Ministry of Natural Resources
+authoritative parcel data inside an intranet.
 
 The default workflow assumes two authoritative Ministry inputs:
 
@@ -21,6 +21,17 @@ Reward changes are treated as model-label changes. For business calibration,
 rerun `sample` and `train` before `plan`; do not only rerun planning with an old
 model.
 
+The current Docker deployment baseline is Paper9v2. Its default configuration is:
+
+```powershell
+configs\paper9v2_no_net_loss_authority_slope.yml
+```
+
+Paper9v2 treats the following business checks as hard gates: county-level
+cultivated land area must not decrease, average cultivated land slope must
+decrease, and contiguity must increase. Hundred-mu field count/area is reported
+and optimized where possible, but it is not the default hard-failure condition.
+
 Quick local checks:
 
 ```powershell
@@ -31,9 +42,9 @@ python -m pytest tests -q
 After offline dependency installation:
 
 ```powershell
-paper9-mnr check-config configs\real_data_from_authority_slope.yml
-paper9-mnr print-plan configs\real_data_from_authority_slope.yml
-paper9-mnr run-full configs\real_data_from_authority_slope.yml
+paper9-mnr check-config configs\paper9v2_no_net_loss_authority_slope.yml
+paper9-mnr print-plan configs\paper9v2_no_net_loss_authority_slope.yml
+paper9-mnr run-full configs\paper9v2_no_net_loss_authority_slope.yml
 ```
 
 Read the `docs/` files in order before moving real Ministry data into
@@ -47,9 +58,16 @@ Current MNR Docker target profile:
 - Customer hosts reported: `deepin server 16`, `x86_64`.
 - Container runtime now allowed by customer policy; use Docker as the default runtime.
 - Use the `linux/amd64` image package on these hosts:
-  `dist/paper9-mnr-offline-container-amd64-20260625.tar.gz`.
+  `dist/paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz`.
+- Use the immutable Paper9v2 image reference:
+  `paper9-mnr-offline:paper9v2-2.0.0-amd64`.
 - The `linux/arm64` package is still generated for other ARM servers, but it is not the
   default package for the reported MNR hosts.
+
+Latest Paper9v2 Docker E2E evidence is in
+`docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md`.
+Both Dongxing and Bishan completed `prepare -> sample -> train -> plan -> audit`
+with the Paper9v2 hard gates passing.
 
 For a brand-new Linux machine with no Python/conda environment and no network,
 this repository alone is not copy-and-run. Build and ship a Linux runtime bundle

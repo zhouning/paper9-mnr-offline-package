@@ -1,0 +1,32 @@
+{
+  "report": "docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md",
+  "generated_at": "2026-06-28 01:57:08",
+  "figures": {
+    "stage": "figures/stage_duration_comparison.svg",
+    "sample": "figures/sample_breakdown.svg",
+    "scale": "figures/data_scale_comparison.svg",
+    "area": "figures/area_delta_comparison.svg",
+    "quality": "figures/train_quality_comparison.svg",
+    "slope_cont": "figures/slope_contiguity_comparison.svg"
+  },
+  "datasets": {
+    "dongxing": {
+      "run_id": "20260627-155224",
+      "run_manifest": "outputs/paper9v2_docker_e2e_20260627/dongxing/logs/run_full_pipeline-20260627-155224.json",
+      "audit_summary": "outputs/paper9v2_docker_e2e_20260627/dongxing/audit_summary.json"
+    },
+    "bishan": {
+      "run_id": "20260627-170016",
+      "run_manifest": "outputs/paper9v2_docker_e2e_20260627/bishan/logs/run_full_pipeline-20260627-170016.json",
+      "audit_summary": "outputs/paper9v2_docker_e2e_20260627/bishan/audit_summary.json"
+    }
+  },
+  "image": {
+    "image_ref": "paper9-mnr-offline:paper9v2-2.0.0-arm64",
+    "package_version": "0.2.0",
+    "algorithm_name": "paper9v2",
+    "algorithm_version": "2.0.0",
+    "revision": "a58fa3ad15c9",
+    "created": "2026-06-27T15:47:23Z"
+  }
+}
