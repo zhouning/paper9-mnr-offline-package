@@ -42,6 +42,17 @@ def test_container_runtime_wrapper_supports_full_image_ref():
     assert 'PAPER9_IMAGE_REF="$tag"' in script
 
 
+def test_container_runtime_wrapper_defaults_to_paper9v2_config():
+    script = (PACKAGE_ROOT / "deploy/container-runtime/run-paper9-container.sh").read_text(encoding="utf-8")
+
+    assert (
+        "--config PATH                 Config path inside container. "
+        "Default: configs/paper9v2_no_net_loss_authority_slope.yml"
+    ) in script
+    assert 'config="configs/paper9v2_no_net_loss_authority_slope.yml"' in script
+    assert "configs/real_data_from_authority_slope.yml" not in script
+
+
 def test_container_runtime_bundle_writes_manifest_and_checksums():
     script = (PACKAGE_ROOT / "deploy/container-runtime/package-container-runtime-bundle.sh").read_text(
         encoding="utf-8"
@@ -57,6 +68,8 @@ def test_container_runtime_bundle_writes_manifest_and_checksums():
     assert 'algorithm_version="2.0.0"' in script
     assert 'git_commit="unknown"' in script
     assert 'image_ref="${image_ref:-paper9-mnr-offline:${algorithm_name}-${algorithm_version}-${arch}}"' in script
+    assert 'default_bundle_name="paper9-mnr-container-runtime-${algorithm_name}-${algorithm_version}-${arch}"' in script
+    assert 'bundle_name="$(basename "${out%.tar.gz}")"' in script
     assert '"algorithm_version": "${algorithm_version}"' in script
     assert '"default_config": "configs/paper9v2_no_net_loss_authority_slope.yml"' in script
     assert "SHA256SUMS.txt" in script
@@ -71,10 +84,18 @@ def test_container_runtime_bundle_readme_commands_use_image_ref():
 
     assert (
         "./bin/run-paper9-container.sh check --runtime docker --arch ${arch} "
-        "--image-ref ${image_ref} --image-tar images/paper9-mnr-offline-linux-${arch}.tar"
+        "--image-ref ${image_ref} --config configs/paper9v2_no_net_loss_authority_slope.yml "
+        "--image-tar images/paper9-mnr-offline-linux-${arch}.tar"
     ) in script
     assert (
-        "./bin/run-paper9-container.sh dry-run --runtime docker --arch ${arch} --image-ref ${image_ref}"
+        "./bin/run-paper9-container.sh dry-run --runtime docker --arch ${arch} "
+        "--image-ref ${image_ref} --config configs/paper9v2_no_net_loss_authority_slope.yml"
     ) in script
-    assert "./bin/run-paper9-container.sh run --runtime docker --arch ${arch} --image-ref ${image_ref}" in script
-    assert "./bin/run-paper9-container.sh audit --runtime docker --arch ${arch} --image-ref ${image_ref}" in script
+    assert (
+        "./bin/run-paper9-container.sh run --runtime docker --arch ${arch} "
+        "--image-ref ${image_ref} --config configs/paper9v2_no_net_loss_authority_slope.yml"
+    ) in script
+    assert (
+        "./bin/run-paper9-container.sh audit --runtime docker --arch ${arch} "
+        "--image-ref ${image_ref} --config configs/paper9v2_no_net_loss_authority_slope.yml"
+    ) in script

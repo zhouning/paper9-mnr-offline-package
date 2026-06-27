@@ -217,13 +217,16 @@ docker run --rm --platform linux/amd64 \
   python -m paper9_mnr.cli check-config configs/paper9v2_no_net_loss_authority_slope.yml
 ```
 
-执行 dry-run、run 和 audit 时，把最后一行分别替换为：
+执行 dry-run、run 和单独复核 audit 时，把最后一行分别替换为：
 
 ```bash
 python scripts/run_full_pipeline.py configs/paper9v2_no_net_loss_authority_slope.yml --dry-run
 python scripts/run_full_pipeline.py configs/paper9v2_no_net_loss_authority_slope.yml
 python scripts/05_audit.py configs/paper9v2_no_net_loss_authority_slope.yml --write
 ```
+
+`run_full_pipeline.py` 的正式运行已把 audit 纳入最后阶段，只有 Paper9v2 的耕地面积不减少、
+平均坡度降低、连片度上升三项硬门禁通过才会返回成功；第三条命令用于对已生成产物重复审计。
 
 Notebook 依赖检查：
 
@@ -320,6 +323,7 @@ YYYYMMDD-HHMMSS-prepare.log
 YYYYMMDD-HHMMSS-sample.log
 YYYYMMDD-HHMMSS-train.log
 YYYYMMDD-HHMMSS-plan.log
+YYYYMMDD-HHMMSS-audit.log
 ```
 
 优先打开 JSON manifest。它记录配置、每个阶段的命令、开始时间、结束时间、返回码、耗时和阶段日志路径。

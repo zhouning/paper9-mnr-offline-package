@@ -147,6 +147,17 @@ def build_stage_commands(config: Mapping[str, Any], python_executable: str = "py
     }
 
 
+def build_full_pipeline_commands(
+    config: Mapping[str, Any],
+    config_path: str,
+    python_executable: str = "python",
+) -> dict[str, list[str]]:
+    """Return commands for a full run, including the final audit gate."""
+    commands = build_stage_commands(config, python_executable=python_executable)
+    commands["audit"] = [python_executable, "scripts/05_audit.py", config_path, "--write"]
+    return commands
+
+
 def format_command(command: list[str]) -> str:
     """Format a command for logs and docs."""
     return " ".join(shlex.quote(str(part)) for part in command)

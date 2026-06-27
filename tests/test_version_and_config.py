@@ -36,6 +36,14 @@ def test_paper9v2_config_requires_cultivated_area_floor_delta():
         validate_config(config)
 
 
+def test_paper9v2_config_rejects_negative_cultivated_area_floor_delta():
+    config = load_config(PACKAGE_ROOT / "configs/paper9v2_no_net_loss_authority_slope.yml")
+    config["planning"]["constraints"]["cultivated_area_floor_delta_ha"] = -0.01
+
+    with pytest.raises(ConfigError, match="must be >= 0"):
+        validate_config(config)
+
+
 def test_paper9v2_requires_matching_algorithm_version():
     config = load_config(PACKAGE_ROOT / "configs/paper9v2_no_net_loss_authority_slope.yml")
     config["algorithm"]["version"] = "2.0.1"

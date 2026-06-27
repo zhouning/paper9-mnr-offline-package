@@ -30,7 +30,7 @@ def test_run_full_pipeline_dry_run_writes_manifest_and_run_log(tmp_path):
 
     manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
     assert manifest["status"] == "dry-run"
-    assert [stage["stage"] for stage in manifest["stages"]] == ["prepare", "sample", "train", "plan"]
+    assert [stage["stage"] for stage in manifest["stages"]] == ["prepare", "sample", "train", "plan", "audit"]
     assert all(stage["returncode"] == 0 for stage in manifest["stages"])
     assert "--reference-layer" in manifest["stages"][0]["command"]
 
@@ -41,5 +41,7 @@ def test_run_full_pipeline_dry_run_writes_manifest_and_run_log(tmp_path):
     assert "ended_at=" in run_log
     assert "STAGE START stage=prepare" in run_log
     assert "STAGE END stage=prepare status=dry-run returncode=0" in run_log
+    assert "STAGE START stage=audit" in run_log
+    assert "STAGE END stage=audit status=dry-run returncode=0" in run_log
     assert "duration_seconds=" in run_log
     assert "[prepare]" in run_log

@@ -68,6 +68,11 @@ def validate_config(config: Mapping[str, Any]) -> None:
             )
             if "cultivated_area_floor_delta_ha" not in constraints:
                 raise ConfigError("planning.constraints.cultivated_area_floor_delta_ha is required for paper9v2.")
+            floor_delta = constraints["cultivated_area_floor_delta_ha"]
+            if not isinstance(floor_delta, (int, float)) or isinstance(floor_delta, bool):
+                raise ConfigError("planning.constraints.cultivated_area_floor_delta_ha must be numeric.")
+            if float(floor_delta) < 0:
+                raise ConfigError("planning.constraints.cultivated_area_floor_delta_ha must be >= 0.")
 
     slope = _as_mapping(config["slope"], "slope")
     source = slope.get("source")

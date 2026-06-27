@@ -23,7 +23,7 @@ Options:
   --image-tar PATH              Image tar to load before running.
   --image NAME                  Image repository. Default: paper9-mnr-offline.
   --image-ref REF               Full image reference. Overrides --image and --arch tag selection.
-  --config PATH                 Config path inside container. Default: configs/real_data_from_authority_slope.yml
+  --config PATH                 Config path inside container. Default: configs/paper9v2_no_net_loss_authority_slope.yml
   --data-root DIR               Host data root. Default: /data/paper9
   --input-dir DIR               Host input dir. Default: DATA_ROOT/input
   --working-dir DIR             Host working dir. Default: DATA_ROOT/working
@@ -35,8 +35,8 @@ Options:
 Examples:
   ./run-paper9-container.sh check --runtime docker --arch amd64 --image-tar images/paper9-mnr-offline-linux-amd64.tar
   ./run-paper9-container.sh dry-run --runtime podman --data-root /data/paper9
-  ./run-paper9-container.sh run --runtime docker --config configs/no_net_loss_authority_slope.yml
-  ./run-paper9-container.sh notebook --runtime docker --arch amd64 --config configs/real_data_from_authority_slope.yml --notebook-port 8888
+  ./run-paper9-container.sh run --runtime docker --config configs/paper9v2_no_net_loss_authority_slope.yml
+  ./run-paper9-container.sh notebook --runtime docker --arch amd64 --config configs/paper9v2_no_net_loss_authority_slope.yml --notebook-port 8888
 USAGE
 }
 
@@ -72,7 +72,7 @@ arch=""
 image="paper9-mnr-offline"
 image_ref=""
 image_tar=""
-config="configs/real_data_from_authority_slope.yml"
+config="configs/paper9v2_no_net_loss_authority_slope.yml"
 data_root="/data/paper9"
 input_dir=""
 working_dir=""

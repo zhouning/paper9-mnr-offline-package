@@ -156,6 +156,8 @@ sudo chown -R "$USER":"$USER" /data/paper9
 ```
 
 Podman 时把 `--runtime docker` 改成 `--runtime podman`。
+`run` 会在 `prepare -> sample -> train -> plan` 后自动执行 `audit`，只有耕地面积不减少、
+平均坡度降低、连片度上升三项硬门禁全部通过才返回成功；单独的 `audit` 动作用于复核既有产物。
 `--image-ref` 是 Paper9v2 正式发布镜像引用。`--image paper9-mnr-offline --arch amd64`
 仍保留给 v1 和历史包兼容使用；Paper9v2 发布、验收和现场运行应显式使用完整
 `paper9-mnr-offline:paper9v2-2.0.0-{amd64,arm64}` 引用。
@@ -187,8 +189,9 @@ Notebook 模式使用同样的数据挂载，交互地图写到 `/data/paper9/ou
 - `run-paper9-container.sh check` 通过环境检查、测试和配置检查。
 - `run-paper9-container.sh dry-run` 打印的 prepare 命令包含 `--reference-layer`。
 - `run-paper9-container.sh dry-run` 打印的 sample 和 plan 命令均包含 `--cultivated-area-floor-delta-ha 0`。
-- `run-paper9-container.sh run` 生成 `outputs/plan_paper9v2_no_net_loss/DLTB_optimized.gpkg`。
-- `run-paper9-container.sh audit` 显示关键产物均存在。
+- `run-paper9-container.sh run` 生成 `outputs/plan_paper9v2_no_net_loss/DLTB_optimized.gpkg`，
+  写出 `outputs/audit_summary.json`，并通过 Paper9v2 三项硬门禁。
+- `run-paper9-container.sh audit` 可对既有产物重复执行同一套审计。
 - `outputs/logs/` 中存在 run manifest 和各阶段日志。
 
 ## 仍需客户确认的信息

@@ -7,6 +7,7 @@ sys.path.insert(0, str(SRC))
 
 from paper9_mnr.config import validate_config
 from paper9_mnr.pipeline import (
+    build_full_pipeline_commands,
     build_plan_args,
     build_prepare_args,
     build_sample_args,
@@ -140,3 +141,19 @@ def test_stage_commands_can_use_current_python_executable():
     assert commands["sample"][0] == "/opt/conda/envs/paper9/bin/python"
     assert commands["train"][0] == "/opt/conda/envs/paper9/bin/python"
     assert commands["plan"][0] == "/opt/conda/envs/paper9/bin/python"
+
+
+def test_full_pipeline_commands_append_audit_gate():
+    commands = build_full_pipeline_commands(
+        _config(),
+        config_path="configs/paper9v2_no_net_loss_authority_slope.yml",
+        python_executable="/opt/conda/envs/paper9/bin/python",
+    )
+
+    assert list(commands) == ["prepare", "sample", "train", "plan", "audit"]
+    assert commands["audit"] == [
+        "/opt/conda/envs/paper9/bin/python",
+        "scripts/05_audit.py",
+        "configs/paper9v2_no_net_loss_authority_slope.yml",
+        "--write",
+    ]

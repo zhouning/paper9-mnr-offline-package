@@ -6,7 +6,7 @@ usage() {
 Assemble an air-gapped Paper9 container-runtime deployment bundle.
 
 Usage:
-  package-container-runtime-bundle.sh --arch amd64|arm64 --image-tar PATH --runtime-packages-dir DIR --out PATH [options]
+  package-container-runtime-bundle.sh --arch amd64|arm64 --image-tar PATH --runtime-packages-dir DIR [--out PATH] [options]
 
 Options:
   --image-ref REF                 Container image reference recorded in MANIFEST.json.
@@ -20,7 +20,7 @@ Example:
     --arch amd64 \
     --image-tar dist/paper9-mnr-offline-linux-amd64.tar \
     --runtime-packages-dir /tmp/docker-rpms/rocky9-amd64 \
-    --out dist/paper9-mnr-container-runtime-amd64.tar.gz
+    --out dist/paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
 USAGE
 }
 
@@ -90,13 +90,14 @@ done
 [ "$arch" = "amd64" ] || [ "$arch" = "arm64" ] || die "--arch must be amd64 or arm64"
 [ -f "$image_tar" ] || die "image tar not found: $image_tar"
 [ -d "$runtime_packages_dir" ] || die "runtime packages directory not found: $runtime_packages_dir"
-[ -n "$out" ] || die "--out is required"
 [ -n "$package_version" ] || die "--package-version must not be empty"
 [ -n "$algorithm_name" ] || die "--algorithm-name must not be empty"
 [ -n "$algorithm_version" ] || die "--algorithm-version must not be empty"
 [ -n "$git_commit" ] || die "--git-commit must not be empty"
 
 image_ref="${image_ref:-paper9-mnr-offline:${algorithm_name}-${algorithm_version}-${arch}}"
+default_bundle_name="paper9-mnr-container-runtime-${algorithm_name}-${algorithm_version}-${arch}"
+out="${out:-dist/${default_bundle_name}.tar.gz}"
 
 case "$out" in
   *.tar.gz|*.tgz) ;;
@@ -104,7 +105,10 @@ case "$out" in
 esac
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-bundle_name="paper9-mnr-container-runtime-${arch}"
+bundle_name="$(basename "${out%.tar.gz}")"
+if [ "$bundle_name" = "$(basename "$out")" ]; then
+  bundle_name="$(basename "${out%.tgz}")"
+fi
 staging_parent="$(mktemp -d "${TMPDIR:-/tmp}/paper9-container-runtime.XXXXXX")"
 staging="$staging_parent/$bundle_name"
 
@@ -147,12 +151,12 @@ Paper9 MNR container-runtime offline bundle (${arch})
    Place DLTB_with_authority_slope.gpkg, admin_units.gpkg, and DEM_placeholder.tif under /data/paper9/input.
 
 3. Load image and verify:
-   ./bin/run-paper9-container.sh check --runtime docker --arch ${arch} --image-ref ${image_ref} --image-tar images/paper9-mnr-offline-linux-${arch}.tar
+   ./bin/run-paper9-container.sh check --runtime docker --arch ${arch} --image-ref ${image_ref} --config configs/paper9v2_no_net_loss_authority_slope.yml --image-tar images/paper9-mnr-offline-linux-${arch}.tar
 
 4. Run:
-   ./bin/run-paper9-container.sh dry-run --runtime docker --arch ${arch} --image-ref ${image_ref}
-   ./bin/run-paper9-container.sh run --runtime docker --arch ${arch} --image-ref ${image_ref}
-   ./bin/run-paper9-container.sh audit --runtime docker --arch ${arch} --image-ref ${image_ref}
+   ./bin/run-paper9-container.sh dry-run --runtime docker --arch ${arch} --image-ref ${image_ref} --config configs/paper9v2_no_net_loss_authority_slope.yml
+   ./bin/run-paper9-container.sh run --runtime docker --arch ${arch} --image-ref ${image_ref} --config configs/paper9v2_no_net_loss_authority_slope.yml
+   ./bin/run-paper9-container.sh audit --runtime docker --arch ${arch} --image-ref ${image_ref} --config configs/paper9v2_no_net_loss_authority_slope.yml
 README
 
 (

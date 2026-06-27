@@ -15,7 +15,7 @@ SRC = ROOT / "src"
 sys.path.insert(0, str(SRC))
 
 from paper9_mnr.config import load_config, validate_config
-from paper9_mnr.pipeline import build_stage_commands, format_command
+from paper9_mnr.pipeline import build_full_pipeline_commands, format_command
 from paper9_mnr.version import ALGORITHM_NAME, ALGORITHM_VERSION, PACKAGE_VERSION
 
 
@@ -129,7 +129,8 @@ def main() -> int:
         )
         _write_log_line(log, f"log_dir={log_dir}")
         _write_log_line(log, f"manifest={manifest_path}")
-        for stage, command in build_stage_commands(config, python_executable=sys.executable).items():
+        commands = build_full_pipeline_commands(config, config_path=str(args.config), python_executable=sys.executable)
+        for stage, command in commands.items():
             formatted = format_command(command)
             stage_started_at = _iso_now()
             stage_started = time.monotonic()

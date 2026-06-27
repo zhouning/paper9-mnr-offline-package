@@ -8,7 +8,7 @@ from pathlib import Path
 import typer
 
 from .config import ConfigError, load_config, validate_config
-from .pipeline import build_stage_commands, format_command
+from .pipeline import build_full_pipeline_commands, build_stage_commands, format_command
 
 app = typer.Typer(
     name="paper9-mnr",
@@ -30,10 +30,10 @@ def check_config(config_path: Path) -> None:
 
 @app.command("print-plan")
 def print_plan(config_path: Path) -> None:
-    """Print the exact offline commands for the four Paper9 stages."""
+    """Print the exact offline commands for the Paper9 workflow."""
     config = load_config(config_path)
     validate_config(config)
-    for stage, command in build_stage_commands(config).items():
+    for stage, command in build_full_pipeline_commands(config, config_path=str(config_path)).items():
         typer.echo(f"[{stage}] {format_command(command)}")
 
 
@@ -59,9 +59,10 @@ def run_full(
     config_path: Path,
     dry_run: bool = typer.Option(False, "--dry-run", help="Print commands without executing them."),
 ) -> None:
-    """Run prepare, sample, train, and plan in order."""
+    """Run prepare, sample, train, plan, and audit in order."""
     config = load_config(config_path)
-    for stage, command in build_stage_commands(config).items():
+    commands = build_full_pipeline_commands(config, config_path=str(config_path))
+    for stage, command in commands.items():
         typer.echo(f"[{stage}] {format_command(command)}")
         if not dry_run:
             subprocess.run(command, check=True)
@@ -73,4 +74,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

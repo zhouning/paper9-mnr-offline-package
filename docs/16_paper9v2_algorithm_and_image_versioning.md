@@ -325,7 +325,7 @@ SHA256SUMS.txt
 - sample 参数包含县域耕地面积底线约束。
 - plan 参数包含县域耕地面积底线约束。
 - audit 对耕地面积、坡度、连片度硬门槛失败返回失败。
-- run manifest 写入算法版本和镜像版本。
+- run manifest 写入算法版本和镜像版本，并记录 `audit` 作为正式运行最后阶段。
 - 容器运行脚本支持 `--image-ref`。
 - bundle manifest 和 SHA256SUMS 生成。
 

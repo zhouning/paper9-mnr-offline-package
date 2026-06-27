@@ -131,14 +131,10 @@ docker run --rm --platform linux/arm64 \
   -v "$PWD/outputs:/app/outputs" \
   paper9-mnr-offline:paper9v2-2.0.0-arm64 \
   python scripts/run_full_pipeline.py configs/paper9v2_no_net_loss_authority_slope.yml
-
-docker run --rm --platform linux/arm64 \
-  -v "$PWD/data/input:/app/data/input:ro" \
-  -v "$PWD/data/working:/app/data/working" \
-  -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
-  python scripts/05_audit.py configs/paper9v2_no_net_loss_authority_slope.yml --write
 ```
+
+正式 `run_full_pipeline.py` 已包含最后的 audit 阶段。若只需要复核既有成果，可单独执行
+`python scripts/05_audit.py configs/paper9v2_no_net_loss_authority_slope.yml --write`。
 
 `amd64` 验证时把 `--platform linux/arm64` 和镜像 tag 改为：
 
@@ -284,5 +280,6 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 - `run_full_pipeline.py --dry-run` 中 prepare 命令包含 `--reference-layer`。
 - `run_full_pipeline.py --dry-run` 中 sample 和 plan 命令均包含 `--cultivated-area-floor-delta-ha 0`。
 - 使用 Paper9v2 配置完成至少一次 `configs/paper9v2_no_net_loss_authority_slope.yml` 完整 smoke。
-- 正式数据运行后，`scripts/05_audit.py <config> --write` 显示关键成果均存在。
+- 正式数据运行后，`run_full_pipeline.py` 的 manifest 包含 `audit` 阶段，`outputs/audit_summary.json`
+  显示关键成果均存在，且 Paper9v2 硬门禁通过。
 - 如启用 Notebook 扩展模式，`/app/notebooks` 能打开，交互地图能写入 `outputs/notebook/`。
