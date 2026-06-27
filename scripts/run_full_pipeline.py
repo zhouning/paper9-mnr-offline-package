@@ -16,6 +16,7 @@ sys.path.insert(0, str(SRC))
 
 from paper9_mnr.config import load_config, validate_config
 from paper9_mnr.pipeline import build_stage_commands, format_command
+from paper9_mnr.version import ALGORITHM_NAME, ALGORITHM_VERSION, PACKAGE_VERSION
 
 
 def _timestamp() -> str:
@@ -28,6 +29,18 @@ def _iso_now() -> str:
 
 def _default_log_dir() -> Path:
     return Path(os.environ.get("PAPER9_LOG_DIR", ROOT / "outputs" / "logs"))
+
+
+def _build_run_metadata(config: dict[str, object]) -> dict[str, object]:
+    algorithm = config.get("algorithm", {})
+    if not isinstance(algorithm, dict):
+        algorithm = {}
+    return {
+        "package_version": PACKAGE_VERSION,
+        "algorithm_name": algorithm.get("name", ALGORITHM_NAME),
+        "algorithm_version": algorithm.get("version", ALGORITHM_VERSION),
+        "image_ref": os.environ.get("PAPER9_IMAGE_REF", ""),
+    }
 
 
 def _write_json(path: Path, payload: dict[str, object]) -> None:
@@ -97,6 +110,7 @@ def main() -> int:
         "config": str(args.config),
         "dry_run": args.dry_run,
         "log_dir": str(log_dir),
+        "metadata": _build_run_metadata(config),
         "stages": [],
     }
 
