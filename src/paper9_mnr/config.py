@@ -7,6 +7,8 @@ from typing import Any, Mapping
 
 import yaml
 
+from paper9_mnr.version import ALGORITHM_NAME, ALGORITHM_VERSION
+
 
 class ConfigError(ValueError):
     """Raised when a package configuration is incomplete or unsafe."""
@@ -50,6 +52,22 @@ def validate_config(config: Mapping[str, Any]) -> None:
     _require_mapping(config["data"], REQUIRED_DATA, "data")
     _require_mapping(config["fields"], REQUIRED_FIELDS, "fields")
     _require_mapping(config["outputs"], REQUIRED_OUTPUTS, "outputs")
+
+    algorithm = config.get("algorithm")
+    if algorithm is not None:
+        algorithm_map = _as_mapping(algorithm, "algorithm")
+        if algorithm_map.get("name") == ALGORITHM_NAME:
+            if algorithm_map.get("version") != ALGORITHM_VERSION:
+                raise ConfigError(
+                    f"algorithm.version must be {ALGORITHM_VERSION!r} "
+                    f"when algorithm.name is {ALGORITHM_NAME!r}."
+                )
+            constraints = _as_mapping(
+                _as_mapping(config["planning"], "planning").get("constraints", {}),
+                "planning.constraints",
+            )
+            if "cultivated_area_floor_delta_ha" not in constraints:
+                raise ConfigError("planning.constraints.cultivated_area_floor_delta_ha is required for paper9v2.")
 
     slope = _as_mapping(config["slope"], "slope")
     source = slope.get("source")
@@ -117,4 +135,3 @@ def _as_mapping(value: object, label: str) -> Mapping[str, Any]:
     if not isinstance(value, Mapping):
         raise ConfigError(f"{label} must be a mapping.")
     return value
-

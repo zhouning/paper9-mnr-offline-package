@@ -93,6 +93,16 @@ def test_sample_args_forward_reward_overrides_for_calibration():
     assert _value_after(args, "--baimu-area-penalty") == "3100.0"
 
 
+def test_sample_args_include_paper9v2_cultivated_area_floor_only():
+    cfg = _config()
+    del cfg["planning"]["constraints"]["baimu_area_floor_delta_ha"]
+
+    args = build_sample_args(cfg)
+
+    assert _value_after(args, "--cultivated-area-floor-delta-ha") == "0"
+    assert "--baimu-area-floor-delta-ha" not in args
+
+
 def test_train_args_use_local_prepared_dir_and_rank_loss():
     args = build_train_args(_config())
 
@@ -102,10 +112,13 @@ def test_train_args_use_local_prepared_dir_and_rank_loss():
 
 
 def test_plan_args_include_no_net_loss_constraints():
-    args = build_plan_args(_config())
+    cfg = _config()
+    del cfg["planning"]["constraints"]["baimu_area_floor_delta_ha"]
+
+    args = build_plan_args(cfg)
 
     assert _value_after(args, "--cultivated-area-floor-delta-ha") == "0"
-    assert _value_after(args, "--baimu-area-floor-delta-ha") == "0"
+    assert "--baimu-area-floor-delta-ha" not in args
     assert _value_after(args, "--output-shp") == "outputs/plan/DLTB_optimized.gpkg"
 
 

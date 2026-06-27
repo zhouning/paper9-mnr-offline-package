@@ -48,6 +48,7 @@ def build_prepare_args(config: Mapping[str, Any]) -> list[str]:
 def build_sample_args(config: Mapping[str, Any]) -> list[str]:
     validate_config(config)
     sampling = config["sampling"]
+    constraints = config.get("planning", {}).get("constraints", {})
     reward = config.get("reward", {})
 
     args = [
@@ -69,6 +70,7 @@ def build_sample_args(config: Mapping[str, Any]) -> list[str]:
     _append_optional(args, "--baimu-weight", reward.get("baimu_weight"))
     _append_optional(args, "--baimu-bonus", reward.get("baimu_bonus"))
     _append_optional(args, "--baimu-area-penalty", reward.get("baimu_area_penalty"))
+    _append_optional(args, "--cultivated-area-floor-delta-ha", constraints.get("cultivated_area_floor_delta_ha"))
     return args
 
 
