@@ -23,6 +23,7 @@ def test_paper9v2_no_net_loss_config_validates_with_cultivated_area_floor_only()
 
     constraints = config["planning"]["constraints"]
     assert config["algorithm"] == {"name": ALGORITHM_NAME, "version": ALGORITHM_VERSION}
+    assert config["slope"]["field"] == "slope_mean"
     assert constraints["cultivated_area_floor_delta_ha"] == 0
     assert "baimu_area_floor_delta_ha" not in constraints
 

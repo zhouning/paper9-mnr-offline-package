@@ -22,7 +22,7 @@ fields:
 
 slope:
   source: field
-  field: authority_slope
+  field: slope_mean
 
 preparation:
   min_parcels: 3
