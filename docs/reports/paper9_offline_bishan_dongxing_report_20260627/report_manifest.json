@@ -1,0 +1,19 @@
+{
+  "report": "/Users/zhouning/paper9-mnr-offline-package/outputs/paper9_offline_bishan_dongxing_report_20260627/REPORT.md",
+  "figures": {
+    "stage": "figures/stage_duration_comparison.png",
+    "scale": "figures/data_scale_comparison.png",
+    "results": "figures/result_metric_comparison.png",
+    "sample": "figures/sample_breakdown.png"
+  },
+  "cases": {
+    "Dongxing": {
+      "run_id": "20260625-142307",
+      "status": "ok"
+    },
+    "Bishan": {
+      "run_id": "20260627-062432",
+      "status": "ok"
+    }
+  }
+}
