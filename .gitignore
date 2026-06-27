@@ -9,4 +9,5 @@ data/working/
 outputs/
 dist/
 docs/superpowers/
+.worktrees/
 *.egg-info/
