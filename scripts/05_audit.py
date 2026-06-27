@@ -11,6 +11,7 @@ SRC = ROOT / "src"
 sys.path.insert(0, str(SRC))
 
 from paper9_mnr.config import load_config, validate_config
+from paper9_mnr.audit import build_audit_summary
 
 
 def main() -> int:
@@ -21,23 +22,18 @@ def main() -> int:
 
     config = load_config(args.config)
     validate_config(config)
-    expected = {
-        "prepared_dir": Path(config["data"]["prepared_dir"]),
-        "sample_transitions": Path(config["data"]["prepared_dir"]) / "tool2" / "transitions.npz",
-        "sample_pairwise": Path(config["data"]["prepared_dir"]) / "tool2" / "pairwise.npz",
-        "ensemble_dir": Path(config["data"]["prepared_dir"]) / config["training"].get("out_subdir", "tool3"),
-        "plan_dir": Path(config["outputs"]["plan_dir"]),
-        "optimized_vector": Path(config["outputs"]["optimized_vector"]),
-    }
-    summary = {name: {"path": str(path), "exists": path.exists()} for name, path in expected.items()}
+    summary = build_audit_summary(config)
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     if args.write:
         out = ROOT / "outputs" / "audit_summary.json"
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    if not summary["all_expected_outputs_exist"]:
+        return 1
+    if not summary["constraint_status"]["hard_constraint_passed"]:
+        return 2
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
