@@ -22,6 +22,7 @@ Options:
   --arch amd64|arm64            Image architecture. Default: host architecture.
   --image-tar PATH              Image tar to load before running.
   --image NAME                  Image repository. Default: paper9-mnr-offline.
+  --image-ref REF               Full image reference. Overrides --image and --arch tag selection.
   --config PATH                 Config path inside container. Default: configs/real_data_from_authority_slope.yml
   --data-root DIR               Host data root. Default: /data/paper9
   --input-dir DIR               Host input dir. Default: DATA_ROOT/input
@@ -69,6 +70,7 @@ shift || true
 runtime=""
 arch=""
 image="paper9-mnr-offline"
+image_ref=""
 image_tar=""
 config="configs/real_data_from_authority_slope.yml"
 data_root="/data/paper9"
@@ -91,6 +93,10 @@ while [ "$#" -gt 0 ]; do
       ;;
     --image)
       image="${2:-}"
+      shift 2
+      ;;
+    --image-ref)
+      image_ref="${2:-}"
       shift 2
       ;;
     --image-tar)
@@ -160,7 +166,7 @@ outputs_dir="${outputs_dir:-$data_root/outputs}"
 
 mkdir -p "$input_dir" "$working_dir" "$outputs_dir"
 
-tag="$image:$arch"
+tag="${image_ref:-$image:$arch}"
 
 if [ -n "$image_tar" ]; then
   [ -f "$image_tar" ] || die "image tar not found: $image_tar"
@@ -180,7 +186,7 @@ volume_args=(
 )
 
 run_container() {
-  "$runtime" run --rm -e PAPER9_LOG_DIR=/app/outputs/logs "${volume_args[@]}" "$tag" "$@"
+  "$runtime" run --rm -e PAPER9_LOG_DIR=/app/outputs/logs -e PAPER9_IMAGE_REF="$tag" "${volume_args[@]}" "$tag" "$@"
 }
 
 case "$action" in
@@ -206,6 +212,7 @@ case "$action" in
     "$runtime" run --rm \
       -e PAPER9_LOG_DIR=/app/outputs/logs \
       -e PAPER9_CONFIG="${config}" \
+      -e PAPER9_IMAGE_REF="$tag" \
       -p "${notebook_port}:8888" \
       "${volume_args[@]}" \
       "$tag" \
@@ -218,6 +225,6 @@ case "$action" in
         --ServerApp.token="${notebook_token}"
     ;;
   shell)
-    "$runtime" run --rm -it -e PAPER9_LOG_DIR=/app/outputs/logs "${volume_args[@]}" "$tag" /bin/bash
+    "$runtime" run --rm -it -e PAPER9_LOG_DIR=/app/outputs/logs -e PAPER9_IMAGE_REF="$tag" "${volume_args[@]}" "$tag" /bin/bash
     ;;
 esac

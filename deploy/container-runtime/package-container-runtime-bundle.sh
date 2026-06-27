@@ -6,7 +6,14 @@ usage() {
 Assemble an air-gapped Paper9 container-runtime deployment bundle.
 
 Usage:
-  package-container-runtime-bundle.sh --arch amd64|arm64 --image-tar PATH --runtime-packages-dir DIR --out PATH
+  package-container-runtime-bundle.sh --arch amd64|arm64 --image-tar PATH --runtime-packages-dir DIR --out PATH [options]
+
+Options:
+  --image-ref REF                 Container image reference recorded in MANIFEST.json.
+  --package-version VERSION       Package version. Default: 0.2.0.
+  --algorithm-name NAME           Algorithm name. Default: paper9v2.
+  --algorithm-version VERSION     Algorithm version. Default: 2.0.0.
+  --git-commit COMMIT             Git commit recorded in MANIFEST.json. Default: unknown.
 
 Example:
   ./deploy/container-runtime/package-container-runtime-bundle.sh \
@@ -26,6 +33,11 @@ arch=""
 image_tar=""
 runtime_packages_dir=""
 out=""
+package_version="0.2.0"
+algorithm_name="paper9v2"
+algorithm_version="2.0.0"
+git_commit="unknown"
+image_ref=""
 
 while [ "$#" -gt 0 ]; do
   case "$1" in
@@ -45,6 +57,26 @@ while [ "$#" -gt 0 ]; do
       out="${2:-}"
       shift 2
       ;;
+    --image-ref)
+      image_ref="${2:-}"
+      shift 2
+      ;;
+    --package-version)
+      package_version="${2:-}"
+      shift 2
+      ;;
+    --algorithm-name)
+      algorithm_name="${2:-}"
+      shift 2
+      ;;
+    --algorithm-version)
+      algorithm_version="${2:-}"
+      shift 2
+      ;;
+    --git-commit)
+      git_commit="${2:-}"
+      shift 2
+      ;;
     -h|--help)
       usage
       exit 0
@@ -59,6 +91,12 @@ done
 [ -f "$image_tar" ] || die "image tar not found: $image_tar"
 [ -d "$runtime_packages_dir" ] || die "runtime packages directory not found: $runtime_packages_dir"
 [ -n "$out" ] || die "--out is required"
+[ -n "$package_version" ] || die "--package-version must not be empty"
+[ -n "$algorithm_name" ] || die "--algorithm-name must not be empty"
+[ -n "$algorithm_version" ] || die "--algorithm-version must not be empty"
+[ -n "$git_commit" ] || die "--git-commit must not be empty"
+
+image_ref="${image_ref:-paper9-mnr-offline:${algorithm_name}-${algorithm_version}-${arch}}"
 
 case "$out" in
   *.tar.gz|*.tgz) ;;
@@ -83,6 +121,21 @@ cp "$repo_root/deploy/container-runtime/install-container-runtime.sh" "$staging/
 cp "$repo_root/deploy/container-runtime/run-paper9-container.sh" "$staging/bin/"
 cp "$repo_root/docs/12_container_runtime_airgap.md" "$staging/docs/"
 
+build_time="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+cat > "$staging/MANIFEST.json" <<MANIFEST
+{
+  "package_version": "${package_version}",
+  "algorithm_name": "${algorithm_name}",
+  "algorithm_version": "${algorithm_version}",
+  "image_ref": "${image_ref}",
+  "platform": "linux/${arch}",
+  "git_commit": "${git_commit}",
+  "build_time": "${build_time}",
+  "default_config": "configs/paper9v2_no_net_loss_authority_slope.yml"
+}
+MANIFEST
+
 cat > "$staging/README.txt" <<README
 Paper9 MNR container-runtime offline bundle (${arch})
 
@@ -94,13 +147,29 @@ Paper9 MNR container-runtime offline bundle (${arch})
    Place DLTB_with_authority_slope.gpkg, admin_units.gpkg, and DEM_placeholder.tif under /data/paper9/input.
 
 3. Load image and verify:
-   ./bin/run-paper9-container.sh check --runtime docker --arch ${arch} --image-tar images/paper9-mnr-offline-linux-${arch}.tar
+   ./bin/run-paper9-container.sh check --runtime docker --arch ${arch} --image-ref ${image_ref} --image-tar images/paper9-mnr-offline-linux-${arch}.tar
 
 4. Run:
-   ./bin/run-paper9-container.sh dry-run --runtime docker --arch ${arch}
-   ./bin/run-paper9-container.sh run --runtime docker --arch ${arch}
-   ./bin/run-paper9-container.sh audit --runtime docker --arch ${arch}
+   ./bin/run-paper9-container.sh dry-run --runtime docker --arch ${arch} --image-ref ${image_ref}
+   ./bin/run-paper9-container.sh run --runtime docker --arch ${arch} --image-ref ${image_ref}
+   ./bin/run-paper9-container.sh audit --runtime docker --arch ${arch} --image-ref ${image_ref}
 README
+
+(
+  cd "$staging"
+  checksum_tool=""
+  if command -v sha256sum >/dev/null 2>&1; then
+    checksum_tool="sha256sum"
+  elif command -v shasum >/dev/null 2>&1; then
+    checksum_tool="shasum -a 256"
+  else
+    die "sha256sum or shasum is required"
+  fi
+
+  find . -type f ! -name SHA256SUMS.txt | LC_ALL=C sort | while IFS= read -r file; do
+    $checksum_tool "$file"
+  done > SHA256SUMS.txt
+)
 
 mkdir -p "$(dirname "$out")"
 tar -C "$staging_parent" -czf "$out" "$bundle_name"
