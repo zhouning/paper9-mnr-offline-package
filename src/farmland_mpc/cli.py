@@ -131,6 +131,10 @@ def sample(
         help="Override CountyLevelEnv new baimu-fang patch bonus before Tool 2 sampling."),
     baimu_area_penalty: Optional[float] = typer.Option(None, "--baimu-area-penalty",
         help="Override CountyLevelEnv asymmetric baimu area-loss penalty before Tool 2 sampling."),
+    cultivated_area_floor_delta_ha: Optional[float] = typer.Option(
+        None, "--cultivated-area-floor-delta-ha",
+        help="Hard cumulative cultivated-area floor relative to initial area in ha during Tool 2 sampling.",
+    ),
     env_kind: str = typer.Option("county", "--env",
         help="county (default; CountyLevelEnv on cadastral DLTB) | "
              "restoration (RestorationEnv on planning-unit attributes)."),
@@ -153,6 +157,7 @@ def sample(
         baimu_weight=baimu_weight,
         baimu_bonus=baimu_bonus,
         baimu_area_penalty=baimu_area_penalty,
+        cultivated_area_floor_delta_ha=cultivated_area_floor_delta_ha,
     )
     typer.echo(
         f"Phase B done -> {summary['transitions']['n_transitions']} transitions, "

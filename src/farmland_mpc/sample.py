@@ -269,6 +269,7 @@ def run(prepared_dir: str | Path,
         baimu_weight: Optional[float] = None,
         baimu_bonus: Optional[float] = None,
         baimu_area_penalty: Optional[float] = None,
+        cultivated_area_floor_delta_ha: Optional[float] = None,
         messages=None) -> dict:
     """Sample transitions + pairwise data from the env built on ``prepared_dir``.
 
@@ -332,6 +333,14 @@ def run(prepared_dir: str | Path,
                 "[Tool 2] reward overrides: "
                 + ", ".join(f"{k}={v}" for k, v in reward_overrides.items())
             )
+        constraint_overrides = {}
+        if cultivated_area_floor_delta_ha is not None:
+            constraint_overrides["cultivated_area_floor_delta_ha"] = float(cultivated_area_floor_delta_ha)
+        if constraint_overrides:
+            _say(
+                "[Tool 2] constraint overrides: "
+                + ", ".join(f"{k}={v}" for k, v in constraint_overrides.items())
+            )
 
         _say("\n[Tool 2] Building env via make_env ...")
         t0 = time.time()
@@ -339,12 +348,15 @@ def run(prepared_dir: str | Path,
         if env_kind == "restoration":
             if reward_overrides:
                 _say("[Tool 2] reward overrides ignored for restoration env", level="warn")
+            if constraint_overrides:
+                _say("[Tool 2] constraint overrides ignored for restoration env", level="warn")
             env = make_env(prepared_dir=str(prepared_dir))
         else:
             env = make_env(
                 prepared_dir=str(prepared_dir),
                 proj_crs=proj_crs,
                 **reward_overrides,
+                **constraint_overrides,
             )
         _say(f"  env built in {time.time() - t0:.1f}s; "
              f"n_blocks={env.n_blocks}, n_parcels={env.n_parcels}, "
@@ -366,6 +378,7 @@ def run(prepared_dir: str | Path,
                 "n_blocks": int(env.n_blocks),
                 "n_parcels": int(env.n_parcels),
                 "reward_overrides": reward_overrides,
+                "constraint_overrides": constraint_overrides,
             },
         }
 
