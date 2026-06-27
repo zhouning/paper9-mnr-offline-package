@@ -23,7 +23,7 @@
 因此，面向这批机器的默认交付物是：
 
 ```text
-dist/paper9-mnr-offline-container-amd64-20260625.tar.gz
+dist/paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
 ```
 
 解包后默认加载：
@@ -193,8 +193,8 @@ docker save paper9-mnr-offline:paper9v2-2.0.0-amd64 -o dist/paper9-mnr-offline-l
 针对当前 deepin server 16 x86_64 机器，使用 amd64 包：
 
 ```bash
-tar -xzf paper9-mnr-offline-container-amd64-20260625.tar.gz
-cd paper9-mnr-offline-container-amd64-20260625
+tar -xzf paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
+cd paper9-mnr-container-runtime-paper9v2-2.0.0-amd64
 shasum -a 256 -c SHA256SUMS.txt
 ```
 

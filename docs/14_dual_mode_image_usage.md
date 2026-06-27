@@ -18,7 +18,7 @@ CPU 架构：x86_64
 容器策略：已确认允许 Docker
 默认运行时：docker
 默认镜像：paper9-mnr-offline:paper9v2-2.0.0-amd64
-默认离线包：paper9-mnr-offline-container-amd64-20260625.tar.gz
+默认离线包：paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
 默认配置：configs/paper9v2_no_net_loss_authority_slope.yml
 ```
 

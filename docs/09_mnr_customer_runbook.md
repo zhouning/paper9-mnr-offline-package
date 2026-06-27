@@ -15,7 +15,7 @@
 deepin server 16
 x86_64
 Docker 已重新允许
-使用 paper9-mnr-offline-container-amd64-20260625.tar.gz
+使用 paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
 ```
 
 如果某台机器尚未安装 Docker，先按 `docs/12_container_runtime_airgap.md` 准备
@@ -109,8 +109,8 @@ data:
 ### 1. 解包和校验
 
 ```bash
-tar -xzf paper9-mnr-offline-container-amd64-20260625.tar.gz
-cd paper9-mnr-offline-container-amd64-20260625
+tar -xzf paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
+cd paper9-mnr-container-runtime-paper9v2-2.0.0-amd64
 sha256sum -c SHA256SUMS.txt
 ```
 

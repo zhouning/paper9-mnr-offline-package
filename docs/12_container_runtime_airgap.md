@@ -17,7 +17,7 @@ CENTOS_MANTISBT_PROJECT_VERSION="7"
 ```
 
 因此，Paper9 镜像选择 `linux/amd64`。如果目标机器已经有 Docker，直接使用
-`paper9-mnr-offline-container-amd64-20260625.tar.gz` 中的镜像和运行脚本即可。
+`paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz` 中的镜像和运行脚本即可。
 Paper9v2 正式镜像引用为 `paper9-mnr-offline:paper9v2-2.0.0-amd64`；其他 ARM 服务器
 使用 `paper9-mnr-offline:paper9v2-2.0.0-arm64`。
 
