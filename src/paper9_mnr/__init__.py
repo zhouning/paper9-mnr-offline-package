@@ -1,4 +1,5 @@
 """MNR intranet/offline wrapper for the Paper9 farmland MPC workflow."""
 
-__version__ = "0.1.0"
+from .version import PACKAGE_VERSION
 
+__version__ = PACKAGE_VERSION
