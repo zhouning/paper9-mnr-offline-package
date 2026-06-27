@@ -18,6 +18,8 @@ CENTOS_MANTISBT_PROJECT_VERSION="7"
 
 因此，Paper9 镜像选择 `linux/amd64`。如果目标机器已经有 Docker，直接使用
 `paper9-mnr-offline-container-amd64-20260625.tar.gz` 中的镜像和运行脚本即可。
+Paper9v2 正式镜像引用为 `paper9-mnr-offline:paper9v2-2.0.0-amd64`；其他 ARM 服务器
+使用 `paper9-mnr-offline:paper9v2-2.0.0-arm64`。
 
 前期截图中至少有一台机器能找到 `/usr/bin/docker`，另有机器未找到 Docker/Podman。现在客户已
 确认允许 Docker 后，如果现场机器仍没有 Docker，需要先准备 deepin server 16/CentOS 7
@@ -130,22 +132,33 @@ sudo chown -R "$USER":"$USER" /data/paper9
 ./bin/run-paper9-container.sh check \
   --runtime docker \
   --arch amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --image-tar images/paper9-mnr-offline-linux-amd64.tar
 
 ./bin/run-paper9-container.sh dry-run \
   --runtime docker \
-  --arch amd64
+  --arch amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml
 
 ./bin/run-paper9-container.sh run \
   --runtime docker \
-  --arch amd64
+  --arch amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml
 
 ./bin/run-paper9-container.sh audit \
   --runtime docker \
-  --arch amd64
+  --arch amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml
 ```
 
 Podman 时把 `--runtime docker` 改成 `--runtime podman`。
+`--image-ref` 是 Paper9v2 正式发布镜像引用。`--image paper9-mnr-offline --arch amd64`
+仍保留给 v1 和历史包兼容使用；Paper9v2 发布、验收和现场运行应显式使用完整
+`paper9-mnr-offline:paper9v2-2.0.0-{amd64,arm64}` 引用。
 
 如需启动 Notebook 扩展模式：
 
@@ -153,6 +166,8 @@ Podman 时把 `--runtime docker` 改成 `--runtime podman`。
 ./bin/run-paper9-container.sh notebook \
   --runtime docker \
   --arch amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --notebook-port 8888 \
   --notebook-token paper9
 ```
@@ -171,7 +186,8 @@ Notebook 模式使用同样的数据挂载，交互地图写到 `/data/paper9/ou
 - `install-container-runtime.sh` 成功输出 Docker/Podman 版本或 `podman info`。
 - `run-paper9-container.sh check` 通过环境检查、测试和配置检查。
 - `run-paper9-container.sh dry-run` 打印的 prepare 命令包含 `--reference-layer`。
-- `run-paper9-container.sh run` 生成 `outputs/plan_baseline/DLTB_optimized.shp`。
+- `run-paper9-container.sh dry-run` 打印的 sample 和 plan 命令均包含 `--cultivated-area-floor-delta-ha 0`。
+- `run-paper9-container.sh run` 生成 `outputs/plan_paper9v2_no_net_loss/DLTB_optimized.gpkg`。
 - `run-paper9-container.sh audit` 显示关键产物均存在。
 - `outputs/logs/` 中存在 run manifest 和各阶段日志。
 

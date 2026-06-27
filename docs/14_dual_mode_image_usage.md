@@ -17,12 +17,16 @@ Paper9 MNR 离线镜像支持两种使用模式：
 CPU 架构：x86_64
 容器策略：已确认允许 Docker
 默认运行时：docker
-默认镜像：paper9-mnr-offline:amd64
+默认镜像：paper9-mnr-offline:paper9v2-2.0.0-amd64
 默认离线包：paper9-mnr-offline-container-amd64-20260625.tar.gz
+默认配置：configs/paper9v2_no_net_loss_authority_slope.yml
 ```
 
-因此，以下现场命令默认使用 `--runtime docker --arch amd64`。`arm64` 镜像包仍然保留，
-但仅用于其他 ARM 服务器，不用于当前这三台 deepin x86_64 机器。
+因此，以下现场命令默认使用 `--runtime docker --arch amd64 --image-ref
+paper9-mnr-offline:paper9v2-2.0.0-amd64`。`--image-ref` 是 Paper9v2 正式发布镜像引用；
+`--image paper9-mnr-offline --arch amd64` 保留给 v1 和历史包兼容使用，不作为 Paper9v2
+发布口径。`arm64` 镜像包仍然保留，但仅用于其他 ARM 服务器，不用于当前这三台 deepin
+x86_64 机器；对应正式引用为 `paper9-mnr-offline:paper9v2-2.0.0-arm64`。
 
 ## 镜像和数据边界
 
@@ -78,7 +82,8 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 ./bin/run-paper9-container.sh check \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
 
@@ -88,7 +93,8 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 ./bin/run-paper9-container.sh dry-run \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
 
@@ -99,13 +105,20 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 --reference-layer data/input/admin_units.gpkg --reference-name-field XZQMC
 ```
 
+同时确认 dry-run 中 `sample` 和 `plan` 命令均包含以下参数：
+
+```text
+--cultivated-area-floor-delta-ha 0
+```
+
 正式运行：
 
 ```bash
 ./bin/run-paper9-container.sh run \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
 
@@ -115,11 +128,13 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 ./bin/run-paper9-container.sh audit \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
 
-如果目标机是 arm64，把 `--arch amd64` 改为 `--arch arm64`，并加载 arm64 镜像 tar。
+如果目标机是 arm64，把 `--arch amd64` 改为 `--arch arm64`，把 `--image-ref` 改为
+`paper9-mnr-offline:paper9v2-2.0.0-arm64`，并加载 arm64 镜像 tar。
 如果使用 Podman，把 `--runtime docker` 改为 `--runtime podman`。
 
 ## 模式二：Notebook 扩展模式
@@ -130,7 +145,8 @@ Notebook 模式用于核查和解释，不建议作为无人值守生产入口�
 ./bin/run-paper9-container.sh notebook \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9 \
   --notebook-port 8888 \
   --notebook-token paper9
@@ -197,22 +213,22 @@ docker run --rm --platform linux/amd64 \
   -v /Users/zhouning/paper9-mnr-offline-package/data/input:/app/data/input:ro \
   -v /Users/zhouning/paper9-mnr-offline-package/data/working/e2e-amd64:/app/data/working:rw \
   -v /Users/zhouning/paper9-mnr-offline-package/outputs/e2e-amd64:/app/outputs:rw \
-  paper9-mnr-offline:amd64 \
-  python -m paper9_mnr.cli check-config configs/container_mnr_proxy.yml
+  paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  python -m paper9_mnr.cli check-config configs/paper9v2_no_net_loss_authority_slope.yml
 ```
 
 执行 dry-run、run 和 audit 时，把最后一行分别替换为：
 
 ```bash
-python scripts/run_full_pipeline.py configs/container_mnr_proxy.yml --dry-run
-python scripts/run_full_pipeline.py configs/container_mnr_proxy.yml
-python scripts/05_audit.py configs/container_mnr_proxy.yml --write
+python scripts/run_full_pipeline.py configs/paper9v2_no_net_loss_authority_slope.yml --dry-run
+python scripts/run_full_pipeline.py configs/paper9v2_no_net_loss_authority_slope.yml
+python scripts/05_audit.py configs/paper9v2_no_net_loss_authority_slope.yml --write
 ```
 
 Notebook 依赖检查：
 
 ```bash
-docker run --rm --platform linux/amd64 paper9-mnr-offline:amd64 jupyter lab --version
+docker run --rm --platform linux/amd64 paper9-mnr-offline:paper9v2-2.0.0-amd64 jupyter lab --version
 ```
 
 ## 本机原生 arm64 补充验收步骤
@@ -226,7 +242,8 @@ docker run --rm --platform linux/amd64 paper9-mnr-offline:amd64 jupyter lab --ve
 deploy/container-runtime/run-paper9-container.sh dry-run \
   --runtime docker \
   --arch arm64 \
-  --config configs/container_mnr_proxy.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --input-dir /Users/zhouning/paper9-mnr-offline-package/data/input \
   --working-dir /Users/zhouning/paper9-mnr-offline-package/data/working \
   --outputs-dir /Users/zhouning/paper9-mnr-offline-package/outputs
@@ -234,7 +251,8 @@ deploy/container-runtime/run-paper9-container.sh dry-run \
 deploy/container-runtime/run-paper9-container.sh run \
   --runtime docker \
   --arch arm64 \
-  --config configs/container_mnr_proxy.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --input-dir /Users/zhouning/paper9-mnr-offline-package/data/input \
   --working-dir /Users/zhouning/paper9-mnr-offline-package/data/working \
   --outputs-dir /Users/zhouning/paper9-mnr-offline-package/outputs
@@ -242,7 +260,8 @@ deploy/container-runtime/run-paper9-container.sh run \
 deploy/container-runtime/run-paper9-container.sh audit \
   --runtime docker \
   --arch arm64 \
-  --config configs/container_mnr_proxy.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --input-dir /Users/zhouning/paper9-mnr-offline-package/data/input \
   --working-dir /Users/zhouning/paper9-mnr-offline-package/data/working \
   --outputs-dir /Users/zhouning/paper9-mnr-offline-package/outputs
@@ -254,7 +273,8 @@ Notebook 模式：
 deploy/container-runtime/run-paper9-container.sh notebook \
   --runtime docker \
   --arch arm64 \
-  --config configs/container_mnr_proxy.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --input-dir /Users/zhouning/paper9-mnr-offline-package/data/input \
   --working-dir /Users/zhouning/paper9-mnr-offline-package/data/working \
   --outputs-dir /Users/zhouning/paper9-mnr-offline-package/outputs \
@@ -268,8 +288,8 @@ deploy/container-runtime/run-paper9-container.sh notebook \
 http://127.0.0.1:8888/lab?token=paper9
 ```
 
-上述命令会让 notebook 默认读取 `configs/container_mnr_proxy.yml`。打开后第一个代码单元会打印
-当前 `CONFIG`，先确认它指向本机轻量代理配置，再继续运行后续单元。
+上述命令会让 notebook 默认读取 `configs/paper9v2_no_net_loss_authority_slope.yml`。打开后第一个代码单元会打印
+当前 `CONFIG`，先确认它指向 Paper9v2 配置，再继续运行后续单元。
 
 ## 自然资源部现场验收步骤
 
@@ -307,8 +327,8 @@ YYYYMMDD-HHMMSS-plan.log
 默认正式成果：
 
 ```text
-/data/paper9/outputs/plan_baseline/DLTB_optimized.shp
-/data/paper9/outputs/plan_baseline/mpc_summary.json
+/data/paper9/outputs/plan_paper9v2_no_net_loss/DLTB_optimized.gpkg
+/data/paper9/outputs/plan_paper9v2_no_net_loss/mpc_summary.json
 /data/paper9/outputs/audit_summary.json
 ```
 
@@ -320,7 +340,7 @@ Notebook 导出的离线交互地图：
 ```
 
 这些 HTML 地图用于现场解释和核查，默认对展示图层采样并压缩坐标精度；正式矢量成果
-`DLTB_optimized.shp` 不会因此被抽样或简化。
+`DLTB_optimized.gpkg` 不会因此被抽样或简化。
 
 ## 常见问题
 

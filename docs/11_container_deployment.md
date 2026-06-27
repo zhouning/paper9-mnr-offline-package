@@ -68,7 +68,7 @@ docker buildx build \
   --build-arg HTTPS_PROXY=http://host.docker.internal:7897 \
   --build-arg NO_PROXY=localhost,127.0.0.1 \
   --load \
-  -t paper9-mnr-offline:arm64 .
+  -t paper9-mnr-offline:paper9v2-2.0.0-arm64 .
 
 docker buildx build \
   --platform linux/amd64 \
@@ -76,7 +76,7 @@ docker buildx build \
   --build-arg HTTPS_PROXY=http://host.docker.internal:7897 \
   --build-arg NO_PROXY=localhost,127.0.0.1 \
   --load \
-  -t paper9-mnr-offline:amd64 .
+  -t paper9-mnr-offline:paper9v2-2.0.0-amd64 .
 ```
 
 如果当前网络不需要代理，可以删除 `--build-arg HTTP_PROXY/HTTPS_PROXY/NO_PROXY`。
@@ -92,7 +92,7 @@ docker buildx build \
   --build-arg HTTPS_PROXY=http://host.docker.internal:7897 \
   --build-arg NO_PROXY=localhost,127.0.0.1 \
   --load \
-  -t paper9-mnr-offline:amd64 .
+  -t paper9-mnr-offline:paper9v2-2.0.0-amd64 .
 ```
 
 ## 本机容器验证
@@ -104,22 +104,22 @@ docker run --rm --platform linux/arm64 \
   -v "$PWD/data/input:/app/data/input:ro" \
   -v "$PWD/data/working:/app/data/working" \
   -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:arm64 \
+  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
   python scripts/00_check_env.py
 
 docker run --rm --platform linux/arm64 \
   -v "$PWD/data/input:/app/data/input:ro" \
   -v "$PWD/data/working:/app/data/working" \
   -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:arm64 \
+  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
   python -m pytest tests -q
 
 docker run --rm --platform linux/arm64 \
   -v "$PWD/data/input:/app/data/input:ro" \
   -v "$PWD/data/working:/app/data/working" \
   -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:arm64 \
-  python scripts/run_full_pipeline.py configs/container_mnr_proxy.yml --dry-run
+  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  python scripts/run_full_pipeline.py configs/paper9v2_no_net_loss_authority_slope.yml --dry-run
 ```
 
 完整 smoke 验证：
@@ -129,22 +129,22 @@ docker run --rm --platform linux/arm64 \
   -v "$PWD/data/input:/app/data/input:ro" \
   -v "$PWD/data/working:/app/data/working" \
   -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:arm64 \
-  python scripts/run_full_pipeline.py configs/container_mnr_proxy.yml
+  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  python scripts/run_full_pipeline.py configs/paper9v2_no_net_loss_authority_slope.yml
 
 docker run --rm --platform linux/arm64 \
   -v "$PWD/data/input:/app/data/input:ro" \
   -v "$PWD/data/working:/app/data/working" \
   -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:arm64 \
-  python scripts/05_audit.py configs/container_mnr_proxy.yml --write
+  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  python scripts/05_audit.py configs/paper9v2_no_net_loss_authority_slope.yml --write
 ```
 
 `amd64` 验证时把 `--platform linux/arm64` 和镜像 tag 改为：
 
 ```text
 --platform linux/amd64
-paper9-mnr-offline:amd64
+paper9-mnr-offline:paper9v2-2.0.0-amd64
 ```
 
 在 Apple Silicon Docker Desktop 上运行 `amd64` 会通过 QEMU 模拟，速度会明显慢于原生
@@ -164,7 +164,7 @@ docker run --rm --platform linux/arm64 \
   -v "$PWD/data/input:/app/data/input:ro" \
   -v "$PWD/data/working:/app/data/working" \
   -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:arm64 \
+  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
   jupyter lab \
     --ip=0.0.0.0 \
     --port=8888 \
@@ -186,8 +186,8 @@ Notebook 触发完整流程时，也会把日志写入 `outputs/logs`。
 
 ```bash
 mkdir -p dist
-docker save paper9-mnr-offline:arm64 -o dist/paper9-mnr-offline-linux-arm64.tar
-docker save paper9-mnr-offline:amd64 -o dist/paper9-mnr-offline-linux-amd64.tar
+docker save paper9-mnr-offline:paper9v2-2.0.0-arm64 -o dist/paper9-mnr-offline-linux-arm64.tar
+docker save paper9-mnr-offline:paper9v2-2.0.0-amd64 -o dist/paper9-mnr-offline-linux-amd64.tar
 ```
 
 把对应架构的 tar 文件交付给自然资源部。不要把客户真实数据打进镜像 tar。
@@ -234,13 +234,15 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 ./bin/run-paper9-container.sh check \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 
 ./bin/run-paper9-container.sh dry-run \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
 
@@ -250,17 +252,24 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 ./bin/run-paper9-container.sh run \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 
 ./bin/run-paper9-container.sh audit \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
 
-如果以后换成 ARM 服务器，再使用 `arm64` 包并把 `--arch amd64` 改为 `--arch arm64`。
+`--image-ref` 是 Paper9v2 正式发布镜像引用，建议所有发布和验收命令显式传入完整
+`paper9-mnr-offline:paper9v2-2.0.0-{amd64,arm64}`。`--image paper9-mnr-offline --arch amd64`
+仍可用于 v1 和历史包兼容，但不作为 Paper9v2 发布口径。
+
+如果以后换成 ARM 服务器，再使用 `arm64` 包，把 `--arch amd64` 改为 `--arch arm64`，
+并把 `--image-ref` 改为 `paper9-mnr-offline:paper9v2-2.0.0-arm64`。
 
 运行日志位于：
 
@@ -273,6 +282,7 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 - 容器内 `python scripts/00_check_env.py` 通过。
 - 容器内 `python -m pytest tests -q` 通过。
 - `run_full_pipeline.py --dry-run` 中 prepare 命令包含 `--reference-layer`。
-- 使用代理数据完成至少一次 `configs/container_mnr_proxy.yml` 完整 smoke。
+- `run_full_pipeline.py --dry-run` 中 sample 和 plan 命令均包含 `--cultivated-area-floor-delta-ha 0`。
+- 使用 Paper9v2 配置完成至少一次 `configs/paper9v2_no_net_loss_authority_slope.yml` 完整 smoke。
 - 正式数据运行后，`scripts/05_audit.py <config> --write` 显示关键成果均存在。
 - 如启用 Notebook 扩展模式，`/app/notebooks` 能打开，交互地图能写入 `outputs/notebook/`。
