@@ -29,7 +29,7 @@ dist/paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
 解包后默认加载：
 
 ```text
-images/paper9-mnr-offline-linux-amd64.tar
+images/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
 ```
 
 `arm64` 包仍保留给其他 ARM 服务器使用，但不是这三台 deepin x86_64 机器的默认包。
@@ -48,7 +48,7 @@ configs/paper9v2_no_net_loss_authority_slope.yml
 | 项 | amd64 | arm64 |
 | --- | --- | --- |
 | 镜像引用 | `paper9-mnr-offline:paper9v2-2.0.0-amd64` | `paper9-mnr-offline:paper9v2-2.0.0-arm64` |
-| 镜像 tar | `images/paper9-mnr-offline-linux-amd64.tar` | `images/paper9-mnr-offline-linux-arm64.tar` |
+| 镜像 tar | `images/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar` | `images/paper9-mnr-offline-paper9v2-2.0.0-linux-arm64.tar` |
 | 容器运行时整包 | `paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz` | `paper9-mnr-container-runtime-paper9v2-2.0.0-arm64.tar.gz` |
 | 目标场景 | 当前 deepin x86_64 现场默认 | 其他 ARM 服务器 |
 
@@ -59,7 +59,8 @@ configs/paper9v2_no_net_loss_authority_slope.yml
 | Python 包版本 | `0.2.0` |
 | 算法名 | `paper9v2` |
 | 算法版本 | `2.0.0` |
-| 镜像 revision | `a58fa3ad15c9` |
+| 当前 amd64 导出镜像 revision | `a9425ba` |
+| 前次 arm64 E2E 验证镜像 revision | `a58fa3ad15c9` |
 | 默认配置 | `configs/paper9v2_no_net_loss_authority_slope.yml` |
 
 Paper9v2 的 audit hard gate：
@@ -229,11 +230,35 @@ Notebook 触发完整流程时，也会把日志写入 `outputs/logs`。
 
 ```bash
 mkdir -p dist
-docker save paper9-mnr-offline:paper9v2-2.0.0-arm64 -o dist/paper9-mnr-offline-linux-arm64.tar
-docker save paper9-mnr-offline:paper9v2-2.0.0-amd64 -o dist/paper9-mnr-offline-linux-amd64.tar
+docker save paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  -o dist/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+
+docker save paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  -o dist/paper9-mnr-offline-paper9v2-2.0.0-linux-arm64.tar
 ```
 
 把对应架构的 tar 文件交付给自然资源部。不要把客户真实数据打进镜像 tar。
+
+当前已导出的自然资源部 x86_64 目标镜像文件：
+
+```text
+dist/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+dist/SHA256SUMS-paper9v2-2.0.0-amd64.txt
+dist/MANIFEST-paper9v2-2.0.0-amd64.json
+```
+
+校验：
+
+```bash
+cd dist
+shasum -a 256 -c SHA256SUMS-paper9v2-2.0.0-amd64.txt
+```
+
+当前 SHA256：
+
+```text
+a5944ba1f61ee6e0850725cbe23053740661fb9039ac4c45d34b0575b65b164c  paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+```
 
 ## 自然资源部内网加载和运行
 
@@ -254,7 +279,7 @@ sha256sum -c SHA256SUMS.txt
 加载镜像：
 
 ```bash
-docker load -i images/paper9-mnr-offline-linux-amd64.tar
+docker load -i images/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
 ```
 
 准备目录：

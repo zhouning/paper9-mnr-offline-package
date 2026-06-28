@@ -40,7 +40,7 @@ paper9-mnr-container-runtime-paper9v2-2.0.0-arm64.tar.gz
 ```text
 paper9-mnr-container-runtime-paper9v2-2.0.0-amd64/
   images/
-    paper9-mnr-offline-linux-amd64.tar
+    paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
   runtime-packages/
     *.rpm 或 *.deb
   bin/
@@ -62,7 +62,7 @@ paper9-mnr-container-runtime-paper9v2-2.0.0-amd64/
 ```bash
 deploy/container-runtime/package-container-runtime-bundle.sh \
   --arch amd64 \
-  --image-tar dist/paper9-mnr-offline-linux-amd64.tar \
+  --image-tar dist/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar \
   --runtime-packages-dir /path/to/docker-or-podman-packages \
   --out dist/paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
 ```
@@ -72,7 +72,7 @@ arm64 改为：
 ```bash
 deploy/container-runtime/package-container-runtime-bundle.sh \
   --arch arm64 \
-  --image-tar dist/paper9-mnr-offline-linux-arm64.tar \
+  --image-tar dist/paper9-mnr-offline-paper9v2-2.0.0-linux-arm64.tar \
   --runtime-packages-dir /path/to/docker-or-podman-packages \
   --out dist/paper9-mnr-container-runtime-paper9v2-2.0.0-arm64.tar.gz
 ```
@@ -134,7 +134,7 @@ sudo chown -R "$USER":"$USER" /data/paper9
   --arch amd64 \
   --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
-  --image-tar images/paper9-mnr-offline-linux-amd64.tar
+  --image-tar images/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
 
 ./bin/run-paper9-container.sh dry-run \
   --runtime docker \

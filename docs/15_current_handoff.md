@@ -20,8 +20,13 @@
 
 - 当前 Paper9v2 默认配置：`configs/paper9v2_no_net_loss_authority_slope.yml`
 - 当前客户 deepin x86_64 现场默认镜像：`paper9-mnr-offline:paper9v2-2.0.0-amd64`
+- 当前已导出的 x86_64 独立镜像 tar：
+  `dist/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar`
+- 当前校验文件：
+  `dist/SHA256SUMS-paper9v2-2.0.0-amd64.txt`
 - 本机 Apple Silicon 已验证镜像：`paper9-mnr-offline:paper9v2-2.0.0-arm64`
-- Paper9v2 镜像元数据：包版本 `0.2.0`，算法 `paper9v2 2.0.0`，revision `a58fa3ad15c9`
+- 当前 amd64 交付镜像元数据：包版本 `0.2.0`，算法 `paper9v2 2.0.0`，revision `a9425ba`
+- 前次 arm64 E2E 验证镜像元数据：包版本 `0.2.0`，算法 `paper9v2 2.0.0`，revision `a58fa3ad15c9`
 - 现场运行脚本：`deploy/container-runtime/run-paper9-container.sh`
 - 推荐现场顺序：
   1. `check`

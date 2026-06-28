@@ -84,13 +84,27 @@ Paper9v2 的默认配置是 `configs/paper9v2_no_net_loss_authority_slope.yml`�
 已有镜像 tar 时，先加载对应 CPU 架构的镜像：
 
 ```bash
-docker load -i images/paper9-mnr-offline-linux-amd64.tar
+shasum -a 256 -c SHA256SUMS-paper9v2-2.0.0-amd64.txt
+docker load -i images/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
 ```
 
 其他 ARM 服务器才使用：
 
 ```bash
-docker load -i images/paper9-mnr-offline-linux-arm64.tar
+docker load -i images/paper9-mnr-offline-paper9v2-2.0.0-linux-arm64.tar
+```
+
+如果只拷贝独立镜像 tar，而不是完整 container-runtime 整包，则在文件所在目录执行：
+
+```bash
+shasum -a 256 -c SHA256SUMS-paper9v2-2.0.0-amd64.txt
+docker load -i paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+```
+
+当前已导出的 amd64 镜像 tar 校验值为：
+
+```text
+a5944ba1f61ee6e0850725cbe23053740661fb9039ac4c45d34b0575b65b164c  paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
 ```
 
 准备目录：

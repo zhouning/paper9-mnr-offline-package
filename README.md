@@ -61,6 +61,10 @@ Current MNR Docker target profile:
   `dist/paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz`.
 - Use the immutable Paper9v2 image reference:
   `paper9-mnr-offline:paper9v2-2.0.0-amd64`.
+- The standalone exported amd64 image tar is:
+  `dist/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar`.
+- Verify it with:
+  `dist/SHA256SUMS-paper9v2-2.0.0-amd64.txt`.
 - The `linux/arm64` package is still generated for other ARM servers, but it is not the
   default package for the reported MNR hosts.
 
