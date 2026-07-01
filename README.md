@@ -56,15 +56,14 @@ and delivered outputs, see docs/09_mnr_customer_runbook.md.
 Current MNR Docker target profile:
 
 - Customer hosts reported: `deepin server 16`, `x86_64`.
+- 2026-07-01 onsite logs show the target x86_64 CPU flags are missing `sse4_1`
+  and `popcnt`, so the current amd64 default is the `legacy-amd64` package:
+  `dist/paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz`.
+- Use the immutable Paper9v2.1 legacy image reference:
+  `paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64`.
+- The standalone legacy amd64 image tar is:
+  `dist/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar`.
 - Container runtime now allowed by customer policy; use Docker as the default runtime.
-- Use the `linux/amd64` image package on these hosts:
-  `dist/paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz`.
-- Use the immutable Paper9v2 image reference:
-  `paper9-mnr-offline:paper9v2-2.0.0-amd64`.
-- The standalone exported amd64 image tar is:
-  `dist/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar`.
-- Verify it with:
-  `dist/SHA256SUMS-paper9v2-2.0.0-amd64.txt`.
 - The `linux/arm64` package is still generated for other ARM servers, but it is not the
   default package for the reported MNR hosts.
 

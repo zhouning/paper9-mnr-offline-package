@@ -25,6 +25,22 @@ def test_container_runtime_doc_states_runtime_packages_are_os_specific():
     assert "不能把 Rocky/CentOS 的 RPM 直接拿到 Ubuntu 上用" in doc
 
 
+def test_docs_describe_paper9v21_legacy_amd64_release():
+    paths = [
+        PACKAGE_ROOT / "README.md",
+        PACKAGE_ROOT / "docs/11_container_deployment.md",
+        PACKAGE_ROOT / "docs/12_container_runtime_airgap.md",
+        PACKAGE_ROOT / "docs/14_dual_mode_image_usage.md",
+        PACKAGE_ROOT / "docs/15_current_handoff.md",
+    ]
+    text = "\n".join(path.read_text(encoding="utf-8") for path in paths)
+
+    assert "paper9v2-2.1.0-legacy-amd64" in text
+    assert "legacy-amd64" in text
+    assert "sse4_1" in text
+    assert "popcnt" in text
+
+
 def test_container_runtime_wrapper_exposes_notebook_action():
     script = (PACKAGE_ROOT / "deploy/container-runtime/run-paper9-container.sh").read_text(encoding="utf-8")
 

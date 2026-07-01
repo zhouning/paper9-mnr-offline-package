@@ -17,16 +17,18 @@ Paper9 MNR 离线镜像支持两种使用模式：
 CPU 架构：x86_64
 容器策略：已确认允许 Docker
 默认运行时：docker
-默认镜像：paper9-mnr-offline:paper9v2-2.0.0-amd64
-默认离线包：paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
+默认镜像：paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64
+默认离线包：paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz
 默认配置：configs/paper9v2_no_net_loss_authority_slope.yml
 ```
 
-因此，以下现场命令默认使用 `--runtime docker --arch amd64 --image-ref
-paper9-mnr-offline:paper9v2-2.0.0-amd64`。`--image-ref` 是 Paper9v2 正式发布镜像引用；
+2026-07-01 现场 `lscpu` 输出显示目标机缺少 `sse4_1` 和 `popcnt`，不满足 x86-64-v2；
+因此这批 x86_64 机器默认使用 `legacy-amd64` 镜像。以下现场命令默认使用
+`--runtime docker --arch amd64 --image-ref
+paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64`。`--image-ref` 是 Paper9v2 正式发布镜像引用；
 `--image paper9-mnr-offline --arch amd64` 保留给 v1 和历史包兼容使用，不作为 Paper9v2
 发布口径。`arm64` 镜像包仍然保留，但仅用于其他 ARM 服务器，不用于当前这三台 deepin
-x86_64 机器；对应正式引用为 `paper9-mnr-offline:paper9v2-2.0.0-arm64`。
+x86_64 机器；对应正式引用为 `paper9-mnr-offline:paper9v2-2.1.0-arm64`。
 
 ## Paper9v2 业务门禁和已验证基线
 
@@ -84,8 +86,8 @@ Paper9v2 的默认配置是 `configs/paper9v2_no_net_loss_authority_slope.yml`�
 已有镜像 tar 时，先加载对应 CPU 架构的镜像：
 
 ```bash
-shasum -a 256 -c SHA256SUMS-paper9v2-2.0.0-amd64.txt
-docker load -i images/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+shasum -a 256 -c SHA256SUMS-paper9v2-2.1.0-legacy-amd64.txt
+docker load -i images/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
 ```
 
 其他 ARM 服务器才使用：

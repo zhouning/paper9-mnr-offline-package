@@ -16,10 +16,12 @@ ID_LIKE="rhel fedora centos deepin"
 CENTOS_MANTISBT_PROJECT_VERSION="7"
 ```
 
-因此，Paper9 镜像选择 `linux/amd64`。如果目标机器已经有 Docker，直接使用
-`paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz` 中的镜像和运行脚本即可。
-Paper9v2 正式镜像引用为 `paper9-mnr-offline:paper9v2-2.0.0-amd64`；其他 ARM 服务器
-使用 `paper9-mnr-offline:paper9v2-2.0.0-arm64`。
+因此，Paper9 镜像选择 `linux/amd64`。2026-07-01 现场 `lscpu` 输出显示目标机
+缺少 `sse4_1` 和 `popcnt`，不满足 x86-64-v2；必须使用 `legacy-amd64` 包。
+如果目标机器已经有 Docker，直接使用
+`paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz` 中的镜像和运行脚本即可。
+Paper9v2.1 正式镜像引用为 `paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64`；其他 ARM
+服务器按需使用 `paper9-mnr-offline:paper9v2-2.1.0-arm64`。
 
 前期截图中至少有一台机器能找到 `/usr/bin/docker`，另有机器未找到 Docker/Podman。现在客户已
 确认允许 Docker 后，如果现场机器仍没有 Docker，需要先准备 deepin server 16/CentOS 7
@@ -31,16 +33,16 @@ Ubuntu/openEuler/Kylin 等其他发行版的包直接混用到 deepin server 16�
 按目标 CPU 架构和 Linux 发行版分别准备交付包。例如：
 
 ```text
-paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
+paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz
 paper9-mnr-container-runtime-paper9v2-2.0.0-arm64.tar.gz
 ```
 
 解压后建议包含：
 
 ```text
-paper9-mnr-container-runtime-paper9v2-2.0.0-amd64/
+paper9-mnr-offline-container-legacy-amd64-20260701/
   images/
-    paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+    paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
   runtime-packages/
     *.rpm 或 *.deb
   bin/

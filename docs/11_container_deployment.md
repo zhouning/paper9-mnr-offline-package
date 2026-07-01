@@ -20,16 +20,19 @@
 | 容器运行时策略 | 客户已重新确认允许使用 Docker |
 | Podman | 未发现，可不作为默认路径 |
 
-因此，面向这批机器的默认交付物是：
+2026-07-01 现场日志显示，目标 `x86_64` CPU flags 缺少 `sse4_1` 和 `popcnt`，
+不满足 x86-64-v2；旧 `paper9v2-2.0.0-amd64` 镜像中的 NumPy 因 `X86_V2`
+baseline 在 `prepare` 阶段导入失败。因此，面向这批机器的默认交付物更新为
+`legacy-amd64`：
 
 ```text
-dist/paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
+dist/paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz
 ```
 
 解包后默认加载：
 
 ```text
-images/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+images/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
 ```
 
 `arm64` 包仍保留给其他 ARM 服务器使用，但不是这三台 deepin x86_64 机器的默认包。
@@ -47,19 +50,19 @@ configs/paper9v2_no_net_loss_authority_slope.yml
 
 | 项 | amd64 | arm64 |
 | --- | --- | --- |
-| 镜像引用 | `paper9-mnr-offline:paper9v2-2.0.0-amd64` | `paper9-mnr-offline:paper9v2-2.0.0-arm64` |
-| 镜像 tar | `images/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar` | `images/paper9-mnr-offline-paper9v2-2.0.0-linux-arm64.tar` |
-| 容器运行时整包 | `paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz` | `paper9-mnr-container-runtime-paper9v2-2.0.0-arm64.tar.gz` |
-| 目标场景 | 当前 deepin x86_64 现场默认 | 其他 ARM 服务器 |
+| 镜像引用 | `paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64` | `paper9-mnr-offline:paper9v2-2.1.0-arm64` |
+| 镜像 tar | `images/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar` | `images/paper9-mnr-offline-paper9v2-2.1.0-linux-arm64.tar` |
+| 容器运行时整包 | `paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz` | 后续按需生成 |
+| 目标场景 | 当前 deepin x86_64 现场默认，兼容缺少 `sse4_1`/`popcnt` 的 legacy-amd64 主机 | 其他 ARM 服务器 |
 
 镜像标签应包含以下元数据，运行报告和 run manifest 也应记录同一口径：
 
 | 元数据 | 当前值 |
 | --- | --- |
-| Python 包版本 | `0.2.0` |
+| Python 包版本 | `0.2.1` |
 | 算法名 | `paper9v2` |
-| 算法版本 | `2.0.0` |
-| 当前 amd64 导出镜像 revision | `a9425ba` |
+| 算法版本 | `2.1.0` |
+| 当前 amd64 导出镜像 revision | 待 v2.1 legacy 构建写入 |
 | 前次 arm64 E2E 验证镜像 revision | `a58fa3ad15c9` |
 | 默认配置 | `configs/paper9v2_no_net_loss_authority_slope.yml` |
 
