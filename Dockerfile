@@ -4,11 +4,13 @@ FROM ${BASE_IMAGE}
 ARG TARGETPLATFORM
 ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_EXTRA_INDEX_URL=https://download.pytorch.org/whl/cpu
-ARG PACKAGE_VERSION=0.2.0
+ARG PACKAGE_VERSION=0.2.1
 ARG ALGORITHM_NAME=paper9v2
-ARG ALGORITHM_VERSION=2.0.0
+ARG ALGORITHM_VERSION=2.1.0
 ARG GIT_COMMIT=unknown
 ARG BUILD_TIME=unknown
+ARG LEGACY_X86_64=0
+ARG LEGACY_CONSTRAINTS=constraints/legacy-x86_64.txt
 
 LABEL org.opencontainers.image.title="Paper9 MNR offline package" \
       org.opencontainers.image.version="${PACKAGE_VERSION}" \
@@ -28,9 +30,15 @@ WORKDIR /app
 
 COPY pyproject.toml README.md environment.yml ./
 COPY src ./src
+COPY constraints ./constraints
 
 RUN python -m pip install --upgrade pip setuptools wheel \
-    && python -m pip install --extra-index-url "${PIP_EXTRA_INDEX_URL}" ".[dev,notebook]"
+    && if [ "${LEGACY_X86_64}" = "1" ]; then \
+         python -m pip install --extra-index-url "${PIP_EXTRA_INDEX_URL}" -c constraints/legacy-x86_64.txt -r "${LEGACY_CONSTRAINTS}" \
+         && python -m pip install --no-deps .[dev,notebook]; \
+       else \
+         python -m pip install --extra-index-url "${PIP_EXTRA_INDEX_URL}" ".[dev,notebook]"; \
+       fi
 
 COPY Dockerfile ./
 COPY scripts ./scripts
@@ -41,6 +49,9 @@ COPY notebooks ./notebooks
 COPY tests ./tests
 COPY wheelhouse ./wheelhouse
 
-RUN python scripts/00_check_env.py --no-heavy --include-notebook
+RUN python scripts/00_check_env.py --include-notebook \
+    && if [ "${LEGACY_X86_64}" = "1" ]; then \
+         python scripts/check_legacy_cpu_compat.py --require-legacy-amd64; \
+       fi
 
 CMD ["paper9-mnr", "--help"]

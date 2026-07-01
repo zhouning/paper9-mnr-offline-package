@@ -142,3 +142,15 @@ def test_dockerfile_includes_notebook_mode_assets():
 
     assert "COPY notebooks ./notebooks" in dockerfile
     assert '".[dev,notebook]"' in dockerfile
+
+
+def test_dockerfile_supports_legacy_x86_64_build_gate():
+    dockerfile = (PACKAGE_ROOT / "Dockerfile").read_text(encoding="utf-8")
+
+    assert (PACKAGE_ROOT / "constraints" / "legacy-x86_64.txt").exists()
+    assert "ARG LEGACY_X86_64=0" in dockerfile
+    assert "COPY constraints ./constraints" in dockerfile
+    assert "-c constraints/legacy-x86_64.txt" in dockerfile
+    assert "--no-deps .[dev,notebook]" in dockerfile
+    assert "python scripts/00_check_env.py --include-notebook" in dockerfile
+    assert "python scripts/check_legacy_cpu_compat.py --require-legacy-amd64" in dockerfile
