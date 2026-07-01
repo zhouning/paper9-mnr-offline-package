@@ -79,6 +79,30 @@ first; see docs/10_linux_airgap_bundle.md.
 For Docker/OCI deployment with separate linux/amd64 and linux/arm64 image tar
 files, see docs/11_container_deployment.md.
 
+To rebuild the current Paper9v2.1 legacy amd64 image from source on an Intel
+Windows workstation, use Docker Desktop Linux containers and build the image
+directly instead of copying the exported image tar:
+
+```powershell
+docker buildx build `
+  --platform linux/amd64 `
+  --build-arg LEGACY_X86_64=1 `
+  --build-arg HTTP_PROXY=http://host.docker.internal:7897 `
+  --build-arg HTTPS_PROXY=http://host.docker.internal:7897 `
+  --build-arg NO_PROXY=localhost,127.0.0.1,host.docker.internal `
+  --load `
+  -t paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 .
+
+docker run --rm --platform linux/amd64 `
+  paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 `
+  python scripts/check_legacy_cpu_compat.py --require-legacy-amd64
+```
+
+If the Windows host does not need a proxy for Docker builds, remove the three
+proxy build args. For full pipeline runs and bundle packaging, WSL2 or Git Bash
+is recommended because the operational scripts under `deploy/container-runtime/`
+are POSIX shell scripts.
+
 If the target Linux host does not have Docker/Podman but allows offline
 installation of a container runtime, see docs/12_container_runtime_airgap.md.
 

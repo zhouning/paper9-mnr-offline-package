@@ -114,23 +114,27 @@ Docker Desktop buildx 支持 `linux/amd64` 和 `linux/arm64` 时，可分别构�
 
 ```bash
 docker buildx build \
+  --platform linux/amd64 \
+  --build-arg LEGACY_X86_64=1 \
+  --build-arg HTTP_PROXY=http://host.docker.internal:7897 \
+  --build-arg HTTPS_PROXY=http://host.docker.internal:7897 \
+  --build-arg NO_PROXY=localhost,127.0.0.1,host.docker.internal \
+  --load \
+  -t paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 .
+
+docker buildx build \
   --platform linux/arm64 \
   --build-arg HTTP_PROXY=http://host.docker.internal:7897 \
   --build-arg HTTPS_PROXY=http://host.docker.internal:7897 \
   --build-arg NO_PROXY=localhost,127.0.0.1 \
   --load \
-  -t paper9-mnr-offline:paper9v2-2.0.0-arm64 .
-
-docker buildx build \
-  --platform linux/amd64 \
-  --build-arg HTTP_PROXY=http://host.docker.internal:7897 \
-  --build-arg HTTPS_PROXY=http://host.docker.internal:7897 \
-  --build-arg NO_PROXY=localhost,127.0.0.1 \
-  --load \
-  -t paper9-mnr-offline:paper9v2-2.0.0-amd64 .
+  -t paper9-mnr-offline:paper9v2-2.1.0-arm64 .
 ```
 
 如果当前网络不需要代理，可以删除 `--build-arg HTTP_PROXY/HTTPS_PROXY/NO_PROXY`。
+`legacy-amd64` 构建必须保留 `--build-arg LEGACY_X86_64=1`，这样 Dockerfile 会走
+`constraints/legacy-x86_64.txt`，固定 NumPy/PyTorch/GIS/CLI 依赖到老 x86_64 CPU
+兼容组合。
 
 如果 Docker Hub 或本机 registry mirror 在解析基础镜像时失败，可以临时指定可访问的
 基础镜像源；默认仍是 `python:3.11-bookworm`：
@@ -138,13 +142,49 @@ docker buildx build \
 ```bash
 docker buildx build \
   --platform linux/amd64 \
+  --build-arg LEGACY_X86_64=1 \
   --build-arg BASE_IMAGE=hub.rat.dev/library/python:3.11-bookworm \
   --build-arg HTTP_PROXY=http://host.docker.internal:7897 \
   --build-arg HTTPS_PROXY=http://host.docker.internal:7897 \
   --build-arg NO_PROXY=localhost,127.0.0.1 \
   --load \
-  -t paper9-mnr-offline:paper9v2-2.0.0-amd64 .
+  -t paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 .
 ```
+
+### Windows Intel 全新构建
+
+你的 Windows Intel 机器可以从 GitHub pull 源码后重新构建镜像，不需要拷贝本机生成的
+`.tar` 镜像文件。前提是 Docker Desktop 使用 Linux containers，并且 build 阶段能访问
+Docker Hub、PyPI 和 PyTorch CPU wheel 源。
+
+PowerShell 示例：
+
+```powershell
+git clone https://github.com/zhouning/paper9-mnr-offline-package.git
+cd paper9-mnr-offline-package
+
+docker buildx build `
+  --platform linux/amd64 `
+  --build-arg LEGACY_X86_64=1 `
+  --build-arg HTTP_PROXY=http://host.docker.internal:7897 `
+  --build-arg HTTPS_PROXY=http://host.docker.internal:7897 `
+  --build-arg NO_PROXY=localhost,127.0.0.1,host.docker.internal `
+  --load `
+  -t paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 .
+
+docker run --rm --platform linux/amd64 `
+  paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 `
+  python scripts/check_legacy_cpu_compat.py --require-legacy-amd64
+
+docker run --rm --platform linux/amd64 `
+  paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 `
+  python -m pytest tests -q
+```
+
+如果代理不在 Windows 本机，或 Docker Desktop 无法通过 `host.docker.internal:7897`
+访问代理，需要把 `HTTP_PROXY/HTTPS_PROXY` 改成 Docker build 容器可访问的代理地址。
+完整端到端运行建议在 WSL2 或 Git Bash 中执行，因为 `deploy/container-runtime/*.sh`
+和若干验收命令按 POSIX shell 编写；仅构建镜像时 PowerShell 可以直接使用上面的命令。
 
 ## 本机容器验证
 

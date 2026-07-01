@@ -2,13 +2,14 @@ from pathlib import Path
 import sys
 
 import geopandas as gpd
+import pandas as pd
 from shapely.geometry import Polygon
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 SRC = PACKAGE_ROOT / "src"
 sys.path.insert(0, str(SRC))
 
-from farmland_mpc.prepare import _labels_from_reference_layer
+from farmland_mpc.prepare import _labels_from_reference_layer, _trim_to_shapefile_schema
 
 
 def test_reference_layer_labels_survive_groupby_sampling(tmp_path):
@@ -42,3 +43,20 @@ def test_reference_layer_labels_survive_groupby_sampling(tmp_path):
     )
 
     assert labels["123456789"] == "测试村"
+
+
+def test_shapefile_schema_stringifies_datetime_fields():
+    gdf = gpd.GeoDataFrame(
+        {
+            "BGRQ": [pd.Timestamp("2010-12-12 00:00:00"), pd.NaT],
+            "geometry": [
+                Polygon([(0, 0), (1, 0), (1, 1), (0, 1)]),
+                Polygon([(2, 0), (3, 0), (3, 1), (2, 1)]),
+            ],
+        },
+        crs="EPSG:3857",
+    )
+
+    result = _trim_to_shapefile_schema(gdf)
+
+    assert result["BGRQ"].tolist() == ["2010-12-12T00:00:00", ""]

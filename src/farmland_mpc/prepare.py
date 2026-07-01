@@ -33,6 +33,7 @@ where rasterio expects 6+), pass the WKT directly to bypass the database.
 
 from __future__ import annotations
 
+from datetime import date, datetime
 import json
 import logging
 import time
@@ -41,6 +42,8 @@ from typing import Optional
 
 import numpy as np
 import geopandas as gpd
+import pandas as pd
+from pandas.api.types import is_datetime64_any_dtype
 import rasterio
 from rasterio.warp import calculate_default_transform, reproject, Resampling
 from rasterio.features import rasterize
@@ -704,11 +707,15 @@ def _trim_to_shapefile_schema(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     Mirrors the toolbox helper ``_build_shp_safe_field_mappings``.
     """
+    out = gdf.copy()
     rename_map: dict[str, str] = {}
     used_targets: set[str] = set()
-    for col in gdf.columns:
+    for col in out.columns:
         if col == "geometry":
             continue
+        if _has_dbf_unsupported_datetime(out[col]):
+            logger.warning("  DBF schema: '%s' datetime converted to ISO string", col)
+            out[col] = out[col].map(_format_dbf_datetime)
         target = col[:10]
         if target in used_targets:
             # Resolve collision by appending a digit
@@ -722,8 +729,29 @@ def _trim_to_shapefile_schema(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         used_targets.add(target)
         rename_map[col] = target
     if not rename_map:
-        return gdf
-    return gdf.rename(columns=rename_map)
+        return out
+    return out.rename(columns=rename_map)
+
+
+def _has_dbf_unsupported_datetime(series) -> bool:
+    if is_datetime64_any_dtype(series.dtype):
+        return True
+    non_null = series.dropna()
+    if non_null.empty:
+        return False
+    return bool(non_null.map(lambda value: isinstance(value, (datetime, date))).any())
+
+
+def _format_dbf_datetime(value) -> str:
+    if value is None or pd.isna(value):
+        return ""
+    if hasattr(value, "to_pydatetime"):
+        value = value.to_pydatetime()
+    if isinstance(value, datetime):
+        return value.isoformat(timespec="seconds")
+    if isinstance(value, date):
+        return value.isoformat()
+    return str(value)
 
 
 # =============================================================================
