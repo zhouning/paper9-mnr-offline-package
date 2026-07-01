@@ -17,15 +17,15 @@ def _load_run_full_pipeline_module():
 
 def test_build_run_metadata_uses_config_algorithm_and_image_ref(monkeypatch):
     module = _load_run_full_pipeline_module()
-    monkeypatch.setenv("PAPER9_IMAGE_REF", "paper9-mnr-offline:paper9v2-2.0.0-amd64")
-    config = {"algorithm": {"name": "paper9v2", "version": "2.0.0"}}
+    monkeypatch.setenv("PAPER9_IMAGE_REF", "paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64")
+    config = {"algorithm": {"name": "paper9v2", "version": "2.1.0"}}
 
     metadata = module._build_run_metadata(config)
 
-    assert metadata["package_version"] == "0.2.0"
+    assert metadata["package_version"] == "0.2.1"
     assert metadata["algorithm_name"] == "paper9v2"
-    assert metadata["algorithm_version"] == "2.0.0"
-    assert metadata["image_ref"] == "paper9-mnr-offline:paper9v2-2.0.0-amd64"
+    assert metadata["algorithm_version"] == "2.1.0"
+    assert metadata["image_ref"] == "paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64"
 
 
 def test_build_run_metadata_does_not_label_legacy_config_as_paper9v2(monkeypatch):
@@ -34,7 +34,7 @@ def test_build_run_metadata_does_not_label_legacy_config_as_paper9v2(monkeypatch
 
     metadata = module._build_run_metadata({})
 
-    assert metadata["package_version"] == "0.2.0"
+    assert metadata["package_version"] == "0.2.1"
     assert metadata["algorithm_name"] == ""
     assert metadata["algorithm_version"] == ""
     assert metadata["image_ref"] == ""
