@@ -7,6 +7,7 @@ SCRIPTS = [
     PACKAGE_ROOT / "deploy/container-runtime/install-container-runtime.sh",
     PACKAGE_ROOT / "deploy/container-runtime/run-paper9-container.sh",
     PACKAGE_ROOT / "deploy/container-runtime/package-container-runtime-bundle.sh",
+    PACKAGE_ROOT / "deploy/container-runtime/package-lightweight-container-bundle.sh",
 ]
 
 
@@ -38,9 +39,17 @@ def test_container_runtime_wrapper_supports_full_image_ref():
 
     assert "--image-ref REF" in script
     assert 'image_ref="${2:-}"' in script
-    assert 'tag="${image_ref:-$image:paper9v2-2.0.0-$arch}"' in script
+    assert 'default_image_ref "$image" "$arch"' in script
     assert 'PAPER9_IMAGE_REF="$tag"' in script
-    assert "paper9-mnr-offline:paper9v2-2.0.0-amd64" in script
+    assert "paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64" in script
+
+
+def test_container_runtime_wrapper_defaults_amd64_to_legacy_release():
+    script = (PACKAGE_ROOT / "deploy/container-runtime/run-paper9-container.sh").read_text(encoding="utf-8")
+
+    assert 'paper9v2-2.1.0-legacy-amd64' in script
+    assert 'paper9v2-2.1.0-arm64' in script
+    assert 'paper9v2-2.0.0-$arch' not in script
 
 
 def test_container_runtime_wrapper_defaults_to_paper9v2_config():
@@ -100,3 +109,16 @@ def test_container_runtime_bundle_readme_commands_use_image_ref():
         "./bin/run-paper9-container.sh audit --runtime docker --arch ${arch} "
         "--image-ref ${image_ref} --config configs/paper9v2_no_net_loss_authority_slope.yml"
     ) in script
+
+
+def test_lightweight_container_bundle_writes_legacy_manifest_and_readme():
+    script = (PACKAGE_ROOT / "deploy/container-runtime/package-lightweight-container-bundle.sh").read_text(
+        encoding="utf-8"
+    )
+
+    assert "--cpu-compatibility VALUE" in script
+    assert 'cpu_compatibility="legacy-x86_64-without-x86-64-v2"' in script
+    assert '"cpu_compatibility": "${cpu_compatibility}"' in script
+    assert "paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar" in script
+    assert "paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64" in script
+    assert "SHA256SUMS.txt" in script

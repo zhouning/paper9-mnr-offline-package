@@ -33,10 +33,10 @@ Options:
   --notebook-token TOKEN        Jupyter token for notebook mode. Default: paper9.
 
 Examples:
-  ./run-paper9-container.sh check --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 --image-tar images/paper9-mnr-offline-linux-amd64.tar
-  ./run-paper9-container.sh dry-run --runtime podman --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 --data-root /data/paper9
-  ./run-paper9-container.sh run --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 --config configs/paper9v2_no_net_loss_authority_slope.yml
-  ./run-paper9-container.sh notebook --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 --config configs/paper9v2_no_net_loss_authority_slope.yml --notebook-port 8888
+  ./run-paper9-container.sh check --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 --image-tar images/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
+  ./run-paper9-container.sh dry-run --runtime podman --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 --data-root /data/paper9
+  ./run-paper9-container.sh run --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 --config configs/paper9v2_no_net_loss_authority_slope.yml
+  ./run-paper9-container.sh notebook --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 --config configs/paper9v2_no_net_loss_authority_slope.yml --notebook-port 8888
 USAGE
 }
 
@@ -61,6 +61,16 @@ detect_runtime() {
   else
     die "docker or podman is required"
   fi
+}
+
+default_image_ref() {
+  local repo="$1"
+  local image_arch="$2"
+  case "$image_arch" in
+    amd64) echo "${repo}:paper9v2-2.1.0-legacy-amd64" ;;
+    arm64) echo "${repo}:paper9v2-2.1.0-arm64" ;;
+    *) die "unsupported image architecture: $image_arch" ;;
+  esac
 }
 
 action="${1:-}"
@@ -166,7 +176,7 @@ outputs_dir="${outputs_dir:-$data_root/outputs}"
 
 mkdir -p "$input_dir" "$working_dir" "$outputs_dir"
 
-tag="${image_ref:-$image:paper9v2-2.0.0-$arch}"
+tag="${image_ref:-$(default_image_ref "$image" "$arch")}"
 
 if [ -n "$image_tar" ]; then
   [ -f "$image_tar" ] || die "image tar not found: $image_tar"
