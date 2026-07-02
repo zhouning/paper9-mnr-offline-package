@@ -34,10 +34,12 @@ Ubuntu/openEuler/Kylin 等其他发行版的包直接混用到 deepin server 16�
 
 ```text
 paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz
-paper9-mnr-container-runtime-paper9v2-2.0.0-arm64.tar.gz
+paper9-mnr-container-runtime-paper9v2-2.1.0-legacy-amd64.tar.gz
 ```
 
-解压后建议包含：
+如果目标机器已经安装 Docker，使用 `paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz`
+这种轻量镜像包即可。若目标机器没有 Docker，则需要另行组装带 `runtime-packages/` 的
+container-runtime 整包。解压后建议包含：
 
 ```text
 paper9-mnr-offline-container-legacy-amd64-20260701/
@@ -59,24 +61,18 @@ paper9-mnr-offline-container-legacy-amd64-20260701/
 
 ## 在本机组装交付包
 
-已有 Paper9 镜像 tar 后，等拿到目标系统对应的容器运行时 RPM/DEB 包，执行：
+已有 Paper9v2.1 legacy 镜像 tar 后，等拿到目标系统对应的容器运行时 RPM/DEB 包，执行：
 
 ```bash
 deploy/container-runtime/package-container-runtime-bundle.sh \
   --arch amd64 \
-  --image-tar dist/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar \
+  --image-tar dist/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar \
   --runtime-packages-dir /path/to/docker-or-podman-packages \
-  --out dist/paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
-```
-
-arm64 改为：
-
-```bash
-deploy/container-runtime/package-container-runtime-bundle.sh \
-  --arch arm64 \
-  --image-tar dist/paper9-mnr-offline-paper9v2-2.0.0-linux-arm64.tar \
-  --runtime-packages-dir /path/to/docker-or-podman-packages \
-  --out dist/paper9-mnr-container-runtime-paper9v2-2.0.0-arm64.tar.gz
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
+  --package-version 0.2.1 \
+  --algorithm-version 2.1.0 \
+  --git-commit 86f57153771d789b7756f6f1d7c956b09278e9eb \
+  --out dist/paper9-mnr-container-runtime-paper9v2-2.1.0-legacy-amd64.tar.gz
 ```
 
 ## 目标内网机器安装容器运行时
@@ -84,8 +80,8 @@ deploy/container-runtime/package-container-runtime-bundle.sh \
 解压交付包：
 
 ```bash
-tar -xzf paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
-cd paper9-mnr-container-runtime-paper9v2-2.0.0-amd64
+tar -xzf paper9-mnr-container-runtime-paper9v2-2.1.0-legacy-amd64.tar.gz
+cd paper9-mnr-container-runtime-paper9v2-2.1.0-legacy-amd64
 ```
 
 安装 Docker：
@@ -134,26 +130,26 @@ sudo chown -R "$USER":"$USER" /data/paper9
 ./bin/run-paper9-container.sh check \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
-  --image-tar images/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+  --image-tar images/paper9-mnr-offline-linux-amd64.tar
 
 ./bin/run-paper9-container.sh dry-run \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml
 
 ./bin/run-paper9-container.sh run \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml
 
 ./bin/run-paper9-container.sh audit \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml
 ```
 
@@ -162,7 +158,7 @@ Podman 时把 `--runtime docker` 改成 `--runtime podman`。
 平均坡度降低、连片度上升三项硬门禁全部通过才返回成功；单独的 `audit` 动作用于复核既有产物。
 `--image-ref` 是 Paper9v2 正式发布镜像引用。`--image paper9-mnr-offline --arch amd64`
 仍保留给 v1 和历史包兼容使用；Paper9v2 发布、验收和现场运行应显式使用完整
-`paper9-mnr-offline:paper9v2-2.0.0-{amd64,arm64}` 引用。
+`paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64` 引用。
 
 如需启动 Notebook 扩展模式：
 
@@ -170,7 +166,7 @@ Podman 时把 `--runtime docker` 改成 `--runtime podman`。
 ./bin/run-paper9-container.sh notebook \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --notebook-port 8888 \
   --notebook-token paper9

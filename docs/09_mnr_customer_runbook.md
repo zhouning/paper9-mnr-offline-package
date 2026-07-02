@@ -15,11 +15,17 @@
 deepin server 16
 x86_64
 Docker 已重新允许
-使用 paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
+使用 paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz
+镜像 paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64
 ```
 
 如果某台机器尚未安装 Docker，先按 `docs/12_container_runtime_airgap.md` 准备
-deepin server 16/CentOS7 兼容的 x86_64 Docker 离线安装包。不要在这批机器上使用 arm64 包。
+deepin server 16/CentOS7 兼容的 x86_64 Docker 离线安装包。不要在这批机器上使用 arm64 包，
+也不要继续使用历史 `paper9v2-2.0.0-amd64` 镜像。
+
+当前 `paper9v2.1 legacy-amd64` 候选交付包已在本机 Docker 真实数据 E2E 和 Windows Intel
+源码重建测试中通过。验证报告见
+`docs/reports/paper9v21_legacy_amd64_e2e_20260701/REPORT.md`。
 
 ## 一、客户需要提供的数据
 
@@ -109,8 +115,8 @@ data:
 ### 1. 解包和校验
 
 ```bash
-tar -xzf paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
-cd paper9-mnr-container-runtime-paper9v2-2.0.0-amd64
+tar -xzf paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz
+cd paper9-mnr-offline-container-legacy-amd64-20260701
 sha256sum -c SHA256SUMS.txt
 ```
 
@@ -123,7 +129,7 @@ shasum -a 256 -c SHA256SUMS.txt
 ### 2. 加载镜像
 
 ```bash
-docker load -i images/paper9-mnr-offline-linux-amd64.tar
+docker load -i images/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
 ```
 
 ### 3. 准备数据目录
@@ -147,25 +153,29 @@ sudo chown -R "$USER":"$USER" /data/paper9
 ./bin/run-paper9-container.sh check \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 
 ./bin/run-paper9-container.sh dry-run \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 
 ./bin/run-paper9-container.sh run \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 
 ./bin/run-paper9-container.sh audit \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
 
@@ -182,7 +192,8 @@ sudo chown -R "$USER":"$USER" /data/paper9
 ./bin/run-paper9-container.sh notebook \
   --runtime docker \
   --arch amd64 \
-  --config configs/real_data_from_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
+  --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9 \
   --notebook-port 8888 \
   --notebook-token paper9
@@ -216,10 +227,10 @@ python -m pytest tests -q
 
 ### 2. 检查配置
 
-默认 baseline 配置：
+默认 Paper9v2.1 业务约束配置：
 
 ```powershell
-python -m paper9_mnr.cli check-config configs\real_data_from_authority_slope.yml
+python -m paper9_mnr.cli check-config configs\paper9v2_no_net_loss_authority_slope.yml
 ```
 
 带耕地面积和百亩方面积不降低约束的配置：
@@ -231,7 +242,7 @@ python -m paper9_mnr.cli check-config configs\no_net_loss_authority_slope.yml
 ### 3. 先打印命令，不直接运行
 
 ```powershell
-python scripts\run_full_pipeline.py configs\real_data_from_authority_slope.yml --dry-run
+python scripts\run_full_pipeline.py configs\paper9v2_no_net_loss_authority_slope.yml --dry-run
 ```
 
 确认 `prepare` 命令中包含：
@@ -244,7 +255,7 @@ python scripts\run_full_pipeline.py configs\real_data_from_authority_slope.yml -
 ### 4. 正式运行完整流程
 
 ```powershell
-python scripts\run_full_pipeline.py configs\real_data_from_authority_slope.yml
+python scripts\run_full_pipeline.py configs\paper9v2_no_net_loss_authority_slope.yml
 ```
 
 完整流程包括：
@@ -259,11 +270,11 @@ python scripts\run_full_pipeline.py configs\real_data_from_authority_slope.yml
 如果需要分步排查，可按顺序运行：
 
 ```powershell
-python scripts\01_prepare.py configs\real_data_from_authority_slope.yml
-python scripts\02_sample.py configs\real_data_from_authority_slope.yml
-python scripts\03_train.py configs\real_data_from_authority_slope.yml
-python scripts\04_plan.py configs\real_data_from_authority_slope.yml
-python scripts\05_audit.py configs\real_data_from_authority_slope.yml --write
+python scripts\01_prepare.py configs\paper9v2_no_net_loss_authority_slope.yml
+python scripts\02_sample.py configs\paper9v2_no_net_loss_authority_slope.yml
+python scripts\03_train.py configs\paper9v2_no_net_loss_authority_slope.yml
+python scripts\04_plan.py configs\paper9v2_no_net_loss_authority_slope.yml
+python scripts\05_audit.py configs\paper9v2_no_net_loss_authority_slope.yml --write
 ```
 
 修改 reward、约束或业务偏好后，应至少重新运行 `sample -> train -> plan`，不能只用旧模型重跑 `plan`。
@@ -272,11 +283,11 @@ python scripts\05_audit.py configs\real_data_from_authority_slope.yml --write
 
 ### 1. 对外主要成果
 
-默认 baseline 配置输出：
+默认 Paper9v2.1 配置输出：
 
 ```text
-outputs/plan_baseline/DLTB_optimized.shp
-outputs/plan_baseline/mpc_summary.json
+outputs/plan_paper9v2_no_net_loss/DLTB_optimized.shp
+outputs/plan_paper9v2_no_net_loss/mpc_summary.json
 outputs/audit_summary.json
 ```
 
@@ -301,16 +312,18 @@ outputs/audit_summary.json
 - 耕地转林地数量、林地转耕地数量、不变数量。
 
 `outputs/audit_summary.json` 记录关键产物是否存在，适合做文件级交付检查。
+其中 `constraint_status.hard_constraint_passed` 必须为 `true`，并应记录耕地面积、
+坡度和连片度三项 hard gate。
 
 ### 3. 中间过程产物
 
 ```text
-data/working/prepared/dem_slope_analysis/output/DLTB_with_slope.shp
-data/working/prepared/townships.json
-data/working/prepared/results_real/blocks/
-data/working/prepared/tool2/transitions.npz
-data/working/prepared/tool2/pairwise.npz
-data/working/prepared/tool3/
+data/working/prepared_paper9v2_no_net_loss/dem_slope_analysis/output/DLTB_with_slope.shp
+data/working/prepared_paper9v2_no_net_loss/townships.json
+data/working/prepared_paper9v2_no_net_loss/results_real/blocks/
+data/working/prepared_paper9v2_no_net_loss/tool2/transitions.npz
+data/working/prepared_paper9v2_no_net_loss/tool2/pairwise.npz
+data/working/prepared_paper9v2_no_net_loss/tool3/
 ```
 
 这些产物用于复核流程、复现实验和后续模型重训。正式交付时建议与配置文件一起归档，保证结果可追溯。

@@ -89,12 +89,17 @@ def test_container_runtime_bundle_writes_manifest_and_checksums():
     assert "--algorithm-name NAME" in script
     assert "--algorithm-version VERSION" in script
     assert "--git-commit COMMIT" in script
-    assert 'package_version="0.2.0"' in script
+    assert 'package_version="0.2.1"' in script
     assert 'algorithm_name="paper9v2"' in script
-    assert 'algorithm_version="2.0.0"' in script
+    assert 'algorithm_version="2.1.0"' in script
     assert 'git_commit="unknown"' in script
-    assert 'image_ref="${image_ref:-paper9-mnr-offline:${algorithm_name}-${algorithm_version}-${arch}}"' in script
-    assert 'default_bundle_name="paper9-mnr-container-runtime-${algorithm_name}-${algorithm_version}-${arch}"' in script
+    assert 'amd64) image_ref="paper9-mnr-offline:${algorithm_name}-${algorithm_version}-legacy-amd64"' in script
+    assert 'arm64) image_ref="paper9-mnr-offline:${algorithm_name}-${algorithm_version}-arm64"' in script
+    assert (
+        'amd64) default_bundle_name="paper9-mnr-container-runtime-${algorithm_name}-${algorithm_version}-legacy-amd64"'
+        in script
+    )
+    assert 'arm64) default_bundle_name="paper9-mnr-container-runtime-${algorithm_name}-${algorithm_version}-arm64"' in script
     assert 'bundle_name="$(basename "${out%.tar.gz}")"' in script
     assert '"algorithm_version": "${algorithm_version}"' in script
     assert '"default_config": "configs/paper9v2_no_net_loss_authority_slope.yml"' in script

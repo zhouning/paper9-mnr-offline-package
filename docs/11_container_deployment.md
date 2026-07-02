@@ -62,8 +62,8 @@ configs/paper9v2_no_net_loss_authority_slope.yml
 | Python 包版本 | `0.2.1` |
 | 算法名 | `paper9v2` |
 | 算法版本 | `2.1.0` |
-| 当前 amd64 导出镜像 revision | 待 v2.1 legacy 构建写入 |
-| 前次 arm64 E2E 验证镜像 revision | `a58fa3ad15c9` |
+| 当前 amd64 导出镜像 revision | `1b94698-dirty` |
+| 当前 GitHub 最新源码提交 | `86f57153771d789b7756f6f1d7c956b09278e9eb` |
 | 默认配置 | `configs/paper9v2_no_net_loss_authority_slope.yml` |
 
 Paper9v2 的 audit hard gate：
@@ -73,17 +73,18 @@ Paper9v2 的 audit hard gate：
 - 连片度上升：`cont_change > 0`。
 - 百亩方数量和面积需要报告并尽量提升，但默认不是 hard gate。
 
-最新 Docker E2E 验证报告见
-`docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md`。本次已完成东兴与璧山
-两套数据的 `prepare -> sample -> train -> plan -> audit` 全流程：
+当前 `paper9v2.1 legacy-amd64` 候选包验证报告见
+`docs/reports/paper9v21_legacy_amd64_e2e_20260701/REPORT.md`。本次已完成真实数据
+`prepare -> sample -> train -> plan -> audit` 全流程：
 
-| 数据集 | run_id | 镜像 | 总用时 | audit 结果 | 关键业务结果 |
+| 环境 | run_id | 镜像 | 总用时 | audit 结果 | 关键业务结果 |
 | --- | --- | --- | ---: | --- | --- |
-| 东兴 | `20260627-155224` | `paper9-mnr-offline:paper9v2-2.0.0-arm64` | 4044.299s | 通过 | 耕地 +508.783 ha，坡度 -0.3431%，连片度 +0.0530 |
-| 璧山 | `20260627-170016` | `paper9-mnr-offline:paper9v2-2.0.0-arm64` | 2919.626s | 通过 | 耕地 +4.323 ha，坡度 -0.8564%，连片度 +0.0268 |
+| 本机 Docker `linux/amd64` | `20260701-123848` | `paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64` | 6771.457s | 通过 | 耕地 +446.199 ha，坡度 -0.3691%，连片度 +0.0483 |
+| Windows Intel Docker | 见 Windows 提交配置 | `paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64` | 见 Windows 运行日志 | 已完成测试 | 从 GitHub 源码重新构建并测试 |
 
-说明：本次本机正式 E2E 使用 Apple Silicon 原生 `arm64` 镜像；客户 deepin x86_64 现场仍使用
-`amd64` 包和 `paper9-mnr-offline:paper9v2-2.0.0-amd64` 镜像引用。
+说明：2026-06-27 的 Paper9v2.0 arm64 双数据集报告仍保留在
+`docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md`，作为历史基线；
+当前自然资源部 x86_64 现场继续测试应以 v2.1 legacy-amd64 包为准。
 
 ## 镜像边界
 
@@ -188,54 +189,54 @@ docker run --rm --platform linux/amd64 `
 
 ## 本机容器验证
 
-以 `arm64` 为例：
+以当前 `legacy-amd64` 为例：
 
 ```bash
-docker run --rm --platform linux/arm64 \
+docker run --rm --platform linux/amd64 \
   -v "$PWD/data/input:/app/data/input:ro" \
   -v "$PWD/data/working:/app/data/working" \
   -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   python scripts/00_check_env.py
 
-docker run --rm --platform linux/arm64 \
+docker run --rm --platform linux/amd64 \
   -v "$PWD/data/input:/app/data/input:ro" \
   -v "$PWD/data/working:/app/data/working" \
   -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   python -m pytest tests -q
 
-docker run --rm --platform linux/arm64 \
+docker run --rm --platform linux/amd64 \
   -v "$PWD/data/input:/app/data/input:ro" \
   -v "$PWD/data/working:/app/data/working" \
   -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   python scripts/run_full_pipeline.py configs/paper9v2_no_net_loss_authority_slope.yml --dry-run
 ```
 
 完整 smoke 验证：
 
 ```bash
-docker run --rm --platform linux/arm64 \
+docker run --rm --platform linux/amd64 \
   -v "$PWD/data/input:/app/data/input:ro" \
   -v "$PWD/data/working:/app/data/working" \
   -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   python scripts/run_full_pipeline.py configs/paper9v2_no_net_loss_authority_slope.yml
 ```
 
 正式 `run_full_pipeline.py` 已包含最后的 audit 阶段。若只需要复核既有成果，可单独执行
 `python scripts/05_audit.py configs/paper9v2_no_net_loss_authority_slope.yml --write`。
 
-`amd64` 验证时把 `--platform linux/arm64` 和镜像 tag 改为：
+如需验证 `arm64` 镜像，把 `--platform linux/amd64` 和镜像 tag 改为：
 
 ```text
---platform linux/amd64
-paper9-mnr-offline:paper9v2-2.0.0-amd64
+--platform linux/arm64
+paper9-mnr-offline:paper9v2-2.1.0-arm64
 ```
 
-在 Apple Silicon Docker Desktop 上运行 `amd64` 会通过 QEMU 模拟，速度会明显慢于原生
-`arm64`。
+在 Apple Silicon Docker Desktop 上运行 `amd64` 会通过 QEMU 模拟，速度会明显慢于原生 `arm64`；
+客户 deepin x86_64 机器上运行 `legacy-amd64` 则不需要 QEMU。
 
 ## Notebook 扩展模式
 
@@ -251,7 +252,7 @@ docker run --rm --platform linux/arm64 \
   -v "$PWD/data/input:/app/data/input:ro" \
   -v "$PWD/data/working:/app/data/working" \
   -v "$PWD/outputs:/app/outputs" \
-  paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  paper9-mnr-offline:paper9v2-2.1.0-arm64 \
   jupyter lab \
     --ip=0.0.0.0 \
     --port=8888 \
@@ -273,11 +274,11 @@ Notebook 触发完整流程时，也会把日志写入 `outputs/logs`。
 
 ```bash
 mkdir -p dist
-docker save paper9-mnr-offline:paper9v2-2.0.0-amd64 \
-  -o dist/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+docker save paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
+  -o dist/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
 
-docker save paper9-mnr-offline:paper9v2-2.0.0-arm64 \
-  -o dist/paper9-mnr-offline-paper9v2-2.0.0-linux-arm64.tar
+docker save paper9-mnr-offline:paper9v2-2.1.0-arm64 \
+  -o dist/paper9-mnr-offline-paper9v2-2.1.0-linux-arm64.tar
 ```
 
 把对应架构的 tar 文件交付给自然资源部。不要把客户真实数据打进镜像 tar。
@@ -285,22 +286,23 @@ docker save paper9-mnr-offline:paper9v2-2.0.0-arm64 \
 当前已导出的自然资源部 x86_64 目标镜像文件：
 
 ```text
-dist/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
-dist/SHA256SUMS-paper9v2-2.0.0-amd64.txt
-dist/MANIFEST-paper9v2-2.0.0-amd64.json
+dist/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
+dist/SHA256SUMS-paper9v2-2.1.0-legacy-amd64.txt
+dist/MANIFEST-paper9v2-2.1.0-legacy-amd64.json
 ```
 
 校验：
 
 ```bash
 cd dist
-shasum -a 256 -c SHA256SUMS-paper9v2-2.0.0-amd64.txt
+shasum -a 256 -c SHA256SUMS-paper9v2-2.1.0-legacy-amd64.txt
 ```
 
 当前 SHA256：
 
 ```text
-a5944ba1f61ee6e0850725cbe23053740661fb9039ac4c45d34b0575b65b164c  paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+7e86853d2bb7462022ef385bdde6587e452de209b149ad0341be7f41f2e7cd56  paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
+0b3fcacc69291109e73a71bb248f1c308a9a683396e49e36e5c8ece754c33da1  paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz
 ```
 
 ## 自然资源部内网加载和运行
@@ -308,8 +310,8 @@ a5944ba1f61ee6e0850725cbe23053740661fb9039ac4c45d34b0575b65b164c  paper9-mnr-off
 针对当前 deepin server 16 x86_64 机器，使用 amd64 包：
 
 ```bash
-tar -xzf paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
-cd paper9-mnr-container-runtime-paper9v2-2.0.0-amd64
+tar -xzf paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz
+cd paper9-mnr-offline-container-legacy-amd64-20260701
 shasum -a 256 -c SHA256SUMS.txt
 ```
 
@@ -322,7 +324,7 @@ sha256sum -c SHA256SUMS.txt
 加载镜像：
 
 ```bash
-docker load -i images/paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+docker load -i images/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
 ```
 
 准备目录：
@@ -345,14 +347,14 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 ./bin/run-paper9-container.sh check \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 
 ./bin/run-paper9-container.sh dry-run \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
@@ -363,24 +365,24 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 ./bin/run-paper9-container.sh run \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 
 ./bin/run-paper9-container.sh audit \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
 
 `--image-ref` 是 Paper9v2 正式发布镜像引用，建议所有发布和验收命令显式传入完整
-`paper9-mnr-offline:paper9v2-2.0.0-{amd64,arm64}`。`--image paper9-mnr-offline --arch amd64`
+`paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64`。`--image paper9-mnr-offline --arch amd64`
 仍可用于 v1 和历史包兼容，但不作为 Paper9v2 发布口径。
 
 如果以后换成 ARM 服务器，再使用 `arm64` 包，把 `--arch amd64` 改为 `--arch arm64`，
-并把 `--image-ref` 改为 `paper9-mnr-offline:paper9v2-2.0.0-arm64`。
+并把 `--image-ref` 改为 `paper9-mnr-offline:paper9v2-2.1.0-arm64`。
 
 运行日志位于：
 

@@ -45,13 +45,17 @@ Paper9v2 的默认配置是 `configs/paper9v2_no_net_loss_authority_slope.yml`�
 `run` 动作已经把 audit 放在最后阶段；如果三项硬门禁失败，正式流程应返回失败，不应把结果描述为可采用方案。
 `audit` 动作用于对已有产物重复复核。
 
-本机已用 Paper9v2 Docker 镜像完成东兴和璧山两套数据的全流程 E2E，报告见
-`docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md`。验证摘要：
+当前 `paper9v2.1 legacy-amd64` 候选包已完成本机 Docker 真实数据 E2E 和 Windows Intel
+源码重建测试，报告见 `docs/reports/paper9v21_legacy_amd64_e2e_20260701/REPORT.md`。
+验证摘要：
 
-| 数据集 | run_id | 总用时 | 耕地面积变化 | 坡度变化 | 连片度变化 | audit |
+| 环境 | run_id | 总用时 | 耕地面积变化 | 坡度变化 | 连片度变化 | audit |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
-| 东兴 | `20260627-155224` | 4044.299s | +508.783 ha | -0.3431% | +0.0530 | 通过 |
-| 璧山 | `20260627-170016` | 2919.626s | +4.323 ha | -0.8564% | +0.0268 | 通过 |
+| 本机 Docker `linux/amd64` | `20260701-123848` | 6771.457s | +446.199 ha | -0.3691% | +0.0483 | 通过 |
+| Windows Intel Docker | 见 Windows 运行日志 | 见 Windows 运行日志 | 见 Windows 运行日志 | 见 Windows 运行日志 | 见 Windows 运行日志 | 已完成测试 |
+
+2026-06-27 的 Paper9v2.0 东兴/璧山双数据集报告仍保留在
+`docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md`，作为历史基线。
 
 ## 镜像和数据边界
 
@@ -93,20 +97,20 @@ docker load -i images/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
 其他 ARM 服务器才使用：
 
 ```bash
-docker load -i images/paper9-mnr-offline-paper9v2-2.0.0-linux-arm64.tar
+docker load -i images/paper9-mnr-offline-paper9v2-2.1.0-linux-arm64.tar
 ```
 
 如果只拷贝独立镜像 tar，而不是完整 container-runtime 整包，则在文件所在目录执行：
 
 ```bash
-shasum -a 256 -c SHA256SUMS-paper9v2-2.0.0-amd64.txt
-docker load -i paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+shasum -a 256 -c SHA256SUMS-paper9v2-2.1.0-legacy-amd64.txt
+docker load -i paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
 ```
 
 当前已导出的 amd64 镜像 tar 校验值为：
 
 ```text
-a5944ba1f61ee6e0850725cbe23053740661fb9039ac4c45d34b0575b65b164c  paper9-mnr-offline-paper9v2-2.0.0-linux-amd64.tar
+7e86853d2bb7462022ef385bdde6587e452de209b149ad0341be7f41f2e7cd56  paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
 ```
 
 准备目录：
@@ -121,7 +125,7 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 ./bin/run-paper9-container.sh check \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
@@ -132,7 +136,7 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 ./bin/run-paper9-container.sh dry-run \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
@@ -156,7 +160,7 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 ./bin/run-paper9-container.sh run \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
@@ -167,13 +171,13 @@ mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
 ./bin/run-paper9-container.sh audit \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9
 ```
 
 如果目标机是 arm64，把 `--arch amd64` 改为 `--arch arm64`，把 `--image-ref` 改为
-`paper9-mnr-offline:paper9v2-2.0.0-arm64`，并加载 arm64 镜像 tar。
+`paper9-mnr-offline:paper9v2-2.1.0-arm64`，并加载 arm64 镜像 tar。
 如果使用 Podman，把 `--runtime docker` 改为 `--runtime podman`。
 
 ## 模式二：Notebook 扩展模式
@@ -184,7 +188,7 @@ Notebook 模式用于核查和解释，不建议作为无人值守生产入口�
 ./bin/run-paper9-container.sh notebook \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --data-root /data/paper9 \
   --notebook-port 8888 \
@@ -252,7 +256,7 @@ docker run --rm --platform linux/amd64 \
   -v /Users/zhouning/paper9-mnr-offline-package/data/input:/app/data/input:ro \
   -v /Users/zhouning/paper9-mnr-offline-package/data/working/e2e-amd64:/app/data/working:rw \
   -v /Users/zhouning/paper9-mnr-offline-package/outputs/e2e-amd64:/app/outputs:rw \
-  paper9-mnr-offline:paper9v2-2.0.0-amd64 \
+  paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
   python -m paper9_mnr.cli check-config configs/paper9v2_no_net_loss_authority_slope.yml
 ```
 
@@ -270,7 +274,7 @@ python scripts/05_audit.py configs/paper9v2_no_net_loss_authority_slope.yml --wr
 Notebook 依赖检查：
 
 ```bash
-docker run --rm --platform linux/amd64 paper9-mnr-offline:paper9v2-2.0.0-amd64 jupyter lab --version
+docker run --rm --platform linux/amd64 paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 jupyter lab --version
 ```
 
 ## 本机原生 arm64 补充验收步骤
@@ -284,7 +288,7 @@ docker run --rm --platform linux/amd64 paper9-mnr-offline:paper9v2-2.0.0-amd64 j
 deploy/container-runtime/run-paper9-container.sh dry-run \
   --runtime docker \
   --arch arm64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-arm64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --input-dir /Users/zhouning/paper9-mnr-offline-package/data/input \
   --working-dir /Users/zhouning/paper9-mnr-offline-package/data/working \
@@ -293,7 +297,7 @@ deploy/container-runtime/run-paper9-container.sh dry-run \
 deploy/container-runtime/run-paper9-container.sh run \
   --runtime docker \
   --arch arm64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-arm64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --input-dir /Users/zhouning/paper9-mnr-offline-package/data/input \
   --working-dir /Users/zhouning/paper9-mnr-offline-package/data/working \
@@ -302,7 +306,7 @@ deploy/container-runtime/run-paper9-container.sh run \
 deploy/container-runtime/run-paper9-container.sh audit \
   --runtime docker \
   --arch arm64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-arm64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --input-dir /Users/zhouning/paper9-mnr-offline-package/data/input \
   --working-dir /Users/zhouning/paper9-mnr-offline-package/data/working \
@@ -315,7 +319,7 @@ Notebook 模式：
 deploy/container-runtime/run-paper9-container.sh notebook \
   --runtime docker \
   --arch arm64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.0.0-arm64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.1.0-arm64 \
   --config configs/paper9v2_no_net_loss_authority_slope.yml \
   --input-dir /Users/zhouning/paper9-mnr-offline-package/data/input \
   --working-dir /Users/zhouning/paper9-mnr-offline-package/data/working \

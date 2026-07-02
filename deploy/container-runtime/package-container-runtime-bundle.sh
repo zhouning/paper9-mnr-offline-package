@@ -10,17 +10,18 @@ Usage:
 
 Options:
   --image-ref REF                 Container image reference recorded in MANIFEST.json.
-  --package-version VERSION       Package version. Default: 0.2.0.
+  --package-version VERSION       Package version. Default: 0.2.1.
   --algorithm-name NAME           Algorithm name. Default: paper9v2.
-  --algorithm-version VERSION     Algorithm version. Default: 2.0.0.
+  --algorithm-version VERSION     Algorithm version. Default: 2.1.0.
   --git-commit COMMIT             Git commit recorded in MANIFEST.json. Default: unknown.
 
 Example:
   ./deploy/container-runtime/package-container-runtime-bundle.sh \
     --arch amd64 \
-    --image-tar dist/paper9-mnr-offline-linux-amd64.tar \
+    --image-tar dist/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar \
+    --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
     --runtime-packages-dir /tmp/docker-rpms/rocky9-amd64 \
-    --out dist/paper9-mnr-container-runtime-paper9v2-2.0.0-amd64.tar.gz
+    --out dist/paper9-mnr-container-runtime-paper9v2-2.1.0-legacy-amd64.tar.gz
 USAGE
 }
 
@@ -33,9 +34,9 @@ arch=""
 image_tar=""
 runtime_packages_dir=""
 out=""
-package_version="0.2.0"
+package_version="0.2.1"
 algorithm_name="paper9v2"
-algorithm_version="2.0.0"
+algorithm_version="2.1.0"
 git_commit="unknown"
 image_ref=""
 
@@ -95,8 +96,17 @@ done
 [ -n "$algorithm_version" ] || die "--algorithm-version must not be empty"
 [ -n "$git_commit" ] || die "--git-commit must not be empty"
 
-image_ref="${image_ref:-paper9-mnr-offline:${algorithm_name}-${algorithm_version}-${arch}}"
-default_bundle_name="paper9-mnr-container-runtime-${algorithm_name}-${algorithm_version}-${arch}"
+if [ -z "$image_ref" ]; then
+  case "$arch" in
+    amd64) image_ref="paper9-mnr-offline:${algorithm_name}-${algorithm_version}-legacy-amd64" ;;
+    arm64) image_ref="paper9-mnr-offline:${algorithm_name}-${algorithm_version}-arm64" ;;
+  esac
+fi
+
+case "$arch" in
+  amd64) default_bundle_name="paper9-mnr-container-runtime-${algorithm_name}-${algorithm_version}-legacy-amd64" ;;
+  arm64) default_bundle_name="paper9-mnr-container-runtime-${algorithm_name}-${algorithm_version}-arm64" ;;
+esac
 out="${out:-dist/${default_bundle_name}.tar.gz}"
 
 case "$out" in

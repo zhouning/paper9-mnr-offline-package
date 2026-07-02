@@ -67,10 +67,14 @@ Current MNR Docker target profile:
 - The `linux/arm64` package is still generated for other ARM servers, but it is not the
   default package for the reported MNR hosts.
 
-Latest Paper9v2 Docker E2E evidence is in
-`docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md`.
-Both Dongxing and Bishan completed `prepare -> sample -> train -> plan -> audit`
-with the Paper9v2 hard gates passing.
+Current Paper9v2.1 legacy-amd64 Docker E2E evidence is in
+`docs/reports/paper9v21_legacy_amd64_e2e_20260701/REPORT.md`.
+The candidate delivery package completed `prepare -> sample -> train -> plan -> audit`
+on real data with the Paper9v2 hard gates passing, and an Intel Windows workstation
+has also rebuilt and tested the same legacy-amd64 image from GitHub source. The older
+Paper9v2.0 dual-data report remains available at
+`docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md` as historical
+baseline evidence.
 
 For a brand-new Linux machine with no Python/conda environment and no network,
 this repository alone is not copy-and-run. Build and ship a Linux runtime bundle

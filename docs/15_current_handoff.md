@@ -1,6 +1,6 @@
 # 15 当前工作进度接续说明
 
-更新时间：2026-07-01
+更新时间：2026-07-02
 
 本文用于关闭当前窗口后，在后续窗口继续处理 Paper9 自然资源部离线部署包。本文只记录
 工程状态、验证证据和后续动作，不包含客户真实数据。
@@ -25,9 +25,11 @@
   `dist/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar`
 - 当前校验文件：
   `dist/SHA256SUMS-paper9v2-2.1.0-legacy-amd64.txt`
-- 本机 Apple Silicon 已验证镜像：`paper9-mnr-offline:paper9v2-2.0.0-arm64`
-- 当前 amd64 交付镜像元数据：包版本 `0.2.1`，算法 `paper9v2 2.1.0`，revision 待 legacy 构建写入
-- 前次 arm64 E2E 验证镜像元数据：包版本 `0.2.0`，算法 `paper9v2 2.0.0`，revision `a58fa3ad15c9`
+- 当前 legacy-amd64 交付镜像元数据：包版本 `0.2.1`，算法 `paper9v2 2.1.0`，
+  CPU 兼容性 `legacy-x86_64-without-x86-64-v2`，构建 revision `1b94698-dirty`
+- 当前 GitHub 最新源码提交：`86f57153771d789b7756f6f1d7c956b09278e9eb`
+- Windows Intel 机器已从 GitHub 源码重新构建 `paper9v2-2.1.0-legacy-amd64` 并完成测试，
+  其隔离配置已提交为 `configs/windows_dongxing_real_docker_e2e.yml`
 - 现场运行脚本：`deploy/container-runtime/run-paper9-container.sh`
 - 推荐现场顺序：
   1. `check`
@@ -44,9 +46,9 @@
 - `docs/13_notebook_and_logs.md`
 - `docs/14_dual_mode_image_usage.md`
 
-## 正式全量验证口径
+## 当前候选包验证口径
 
-本机已按 Paper9v2 正式参数完成东兴和璧山两套数据的 Docker 端到端验证。使用配置：
+本机已按 Paper9v2.1 正式参数完成 `legacy-amd64` Docker 端到端验证。使用配置：
 
 ```text
 configs/paper9v2_no_net_loss_authority_slope.yml
@@ -77,48 +79,52 @@ Paper9v2 的 hard gate 为：
 - `planning.top_k: 50`
 - `planning.mpc_batch_size: 1024`
 
-## Paper9v2 双数据集全量验证结果
+## Paper9v2.1 legacy-amd64 验证结果
 
-完整图文报告：
+完整报告：
 
 ```text
-docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md
+docs/reports/paper9v21_legacy_amd64_e2e_20260701/REPORT.md
 ```
 
-正式输出目录：
+本机正式输出目录：
 
-- 东兴：`outputs/paper9v2_docker_e2e_20260627/dongxing/`
-- 璧山：`outputs/paper9v2_docker_e2e_20260627/bishan/`
+```text
+outputs/paper9v21_legacy_docker_e2e_20260701-2038/
+```
 
-| 数据集 | run_id | 总用时 | prepare | sample | train | plan | audit |
+| 环境 | run_id | 总用时 | prepare | sample | train | plan | audit |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
-| 东兴 | `20260627-155224` | 4044.299s | 76.829s | 2102.909s | 1673.070s | 191.410s | 通过 |
-| 璧山 | `20260627-170016` | 2919.626s | 36.434s | 1632.444s | 1144.977s | 105.687s | 通过 |
+| 本机 Docker `linux/amd64` | `20260701-123848` | 6771.457s | 289.024s | 4728.314s | 1442.745s | 311.198s | 通过 |
+| Windows Intel Docker | 见 Windows 运行日志 | 见 Windows 运行日志 | 见 Windows 运行日志 | 见 Windows 运行日志 | 见 Windows 运行日志 | 见 Windows 运行日志 | 已完成测试 |
 
 核心业务结果：
 
-| 数据集 | 耕地面积变化 | 坡度变化 | 连片度变化 | 百亩方数变化 | 百亩方面积变化 |
+| 环境 | 耕地面积变化 | 坡度变化 | 连片度变化 | 百亩方数变化 | 百亩方面积变化 |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| 东兴 | +508.783 ha | -0.3431% | +0.0530 | -23 | +766.871 ha |
-| 璧山 | +4.323 ha | -0.8564% | +0.0268 | +1 | +34.638 ha |
+| 本机 Docker `linux/amd64` | +446.199 ha | -0.3691% | +0.0483 | -20 | +669.173 ha |
 
 产物入口：
 
-- run manifest：`outputs/paper9v2_docker_e2e_20260627/{dongxing,bishan}/logs/run_full_pipeline-*.json`
-- audit：`outputs/paper9v2_docker_e2e_20260627/{dongxing,bishan}/audit_summary.json`
-- MPC 摘要：`outputs/paper9v2_docker_e2e_20260627/{dongxing,bishan}/plan_paper9v2_no_net_loss/mpc_summary.json`
-- 最终矢量：`outputs/paper9v2_docker_e2e_20260627/{dongxing,bishan}/plan_paper9v2_no_net_loss/DLTB_optimized.shp`
+- run manifest：`outputs/paper9v21_legacy_docker_e2e_20260701-2038/outputs/logs/run_full_pipeline-20260701-123848.json`
+- audit：`outputs/paper9v21_legacy_docker_e2e_20260701-2038/outputs/audit_summary.json`
+- MPC 摘要：`outputs/paper9v21_legacy_docker_e2e_20260701-2038/outputs/plan_paper9v2_no_net_loss/mpc_summary.json`
+- 最终矢量：`outputs/paper9v21_legacy_docker_e2e_20260701-2038/outputs/plan_paper9v2_no_net_loss/DLTB_optimized.shp`
+
+2026-06-27 的 Paper9v2.0 arm64 东兴/璧山双数据集验证仍保留在
+`docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md`，但当前自然资源部
+x86_64 现场继续测试应以本节的 `paper9v2.1 legacy-amd64` 为准。
 
 ## 已知 warning
 
-Paper9v2 双数据集 E2E 日志中出现的 warning 类型一致，目前均未导致阶段失败：
+Paper9v2.1 legacy-amd64 E2E 日志中出现的 warning 类型如下，目前均未导致阶段失败：
 
+- Fiona 对 GeoPackage v1.4 的 partial support 提示，以及 `BGRQ` 日期解析提示。
 - Shapefile/DBF 字段名被截断，例如 `SHAPE_Length -> SHAPE_Leng`。
 - 局部连通图存在 disconnected components / islands。
 - `RuntimeWarning: invalid value encountered in divide`，来自没有有效面积或邻接的块级统计。
 - `511011214` 在 Phase B 中无可用 blocks，被跳过。
-- ONNX version converter 出现 fallback/traceback warning，但 6 个 ONNX 成员均完成导出并通过
-  parity 校验，最大差异在 `4.77e-07` 到 `7.15e-07` 量级。
+- ONNX parity 校验通过，3 个成员最大差异分别为 `9.54e-07`、`4.77e-07`、`1.79e-07`。
 - plan 阶段会提示 `baimu_area_penalty=3100.0` reward override。当前 sample/train 已使用同一套
   reward 权重；如果以后临时修改 plan 权重，应重新 sample/train。
 
@@ -138,9 +144,9 @@ Paper9v2 双数据集 E2E 日志中出现的 warning 类型一致，目前均未
 ```bash
 cd /Users/zhouning/paper9-mnr-offline-package
 git status --short
-docker image inspect paper9-mnr-offline:paper9v2-2.0.0-arm64
-ls -lh outputs/paper9v2_docker_e2e_20260627/dongxing/plan_paper9v2_no_net_loss
-python3 -m json.tool outputs/paper9v2_docker_e2e_20260627/dongxing/logs/run_full_pipeline-20260627-155224.json
+docker image inspect paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64
+ls -lh outputs/paper9v21_legacy_docker_e2e_20260701-2038/outputs/plan_paper9v2_no_net_loss
+python3 -m json.tool outputs/paper9v21_legacy_docker_e2e_20260701-2038/outputs/logs/run_full_pipeline-20260701-123848.json
 ```
 
 ## 后续现场部署关注点
