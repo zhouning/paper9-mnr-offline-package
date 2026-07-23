@@ -19,9 +19,9 @@ CENTOS_MANTISBT_PROJECT_VERSION="7"
 因此，Paper9 镜像选择 `linux/amd64`。2026-07-01 现场 `lscpu` 输出显示目标机
 缺少 `sse4_1` 和 `popcnt`，不满足 x86-64-v2；必须使用 `legacy-amd64` 包。
 如果目标机器已经有 Docker，直接使用
-`paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz` 中的镜像和运行脚本即可。
-Paper9v2.1 正式镜像引用为 `paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64`；其他 ARM
-服务器按需使用 `paper9-mnr-offline:paper9v2-2.1.0-arm64`。
+`paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64.tar.gz` 中的镜像和运行脚本即可。
+Paper9v2.2 正式镜像引用为 `paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64`；其他 ARM
+服务器如有需要，应另行构建并验证 `paper9-mnr-offline:paper9v2-2.2.2-arm64`。
 
 前期截图中至少有一台机器能找到 `/usr/bin/docker`，另有机器未找到 Docker/Podman。现在客户已
 确认允许 Docker 后，如果现场机器仍没有 Docker，需要先准备 deepin server 16/CentOS 7
@@ -33,18 +33,18 @@ Ubuntu/openEuler/Kylin 等其他发行版的包直接混用到 deepin server 16�
 按目标 CPU 架构和 Linux 发行版分别准备交付包。例如：
 
 ```text
-paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz
-paper9-mnr-container-runtime-paper9v2-2.1.0-legacy-amd64.tar.gz
+paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64.tar.gz
+paper9-mnr-container-runtime-paper9v2-2.2.2-legacy-amd64.tar.gz
 ```
 
-如果目标机器已经安装 Docker，使用 `paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz`
+如果目标机器已经安装 Docker，使用 `paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64.tar.gz`
 这种轻量镜像包即可。若目标机器没有 Docker，则需要另行组装带 `runtime-packages/` 的
 container-runtime 整包。解压后建议包含：
 
 ```text
-paper9-mnr-offline-container-legacy-amd64-20260701/
+paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64/
   images/
-    paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
+    paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar
   runtime-packages/
     *.rpm 或 *.deb
   bin/
@@ -61,18 +61,19 @@ paper9-mnr-offline-container-legacy-amd64-20260701/
 
 ## 在本机组装交付包
 
-已有 Paper9v2.1 legacy 镜像 tar 后，等拿到目标系统对应的容器运行时 RPM/DEB 包，执行：
+已有 Paper9v2.2 legacy 镜像 tar 后，等拿到目标系统对应的容器运行时 RPM/DEB 包，执行：
 
 ```bash
 deploy/container-runtime/package-container-runtime-bundle.sh \
   --arch amd64 \
-  --image-tar dist/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar \
+  --image-tar dist/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar \
   --runtime-packages-dir /path/to/docker-or-podman-packages \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --package-version 0.2.1 \
-  --algorithm-version 2.1.0 \
+  --dem-dir dist/dem/copernicus_glo30 \
+  --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+  --package-version 0.3.2 \
+  --algorithm-version 2.2.2 \
   --git-commit 86f57153771d789b7756f6f1d7c956b09278e9eb \
-  --out dist/paper9-mnr-container-runtime-paper9v2-2.1.0-legacy-amd64.tar.gz
+  --out dist/paper9-mnr-container-runtime-paper9v2-2.2.2-legacy-amd64.tar.gz
 ```
 
 ## 目标内网机器安装容器运行时
@@ -80,8 +81,8 @@ deploy/container-runtime/package-container-runtime-bundle.sh \
 解压交付包：
 
 ```bash
-tar -xzf paper9-mnr-container-runtime-paper9v2-2.1.0-legacy-amd64.tar.gz
-cd paper9-mnr-container-runtime-paper9v2-2.1.0-legacy-amd64
+tar -xzf paper9-mnr-container-runtime-paper9v2-2.2.2-legacy-amd64.tar.gz
+cd paper9-mnr-container-runtime-paper9v2-2.2.2-legacy-amd64
 ```
 
 安装 Docker：
@@ -103,62 +104,48 @@ sudo ./bin/install-container-runtime.sh \
 脚本只安装本地包，不连接网络。RPM 系统会优先使用 `dnf --disablerepo='*'` 或
 `yum --disablerepo='*'`；DEB 系统会使用本地 `.deb` 包和 `apt-get --no-download`。
 
-## 放置客户数据
+## 融合客户数据
 
-准备数据目录：
+客户每县只提供四个 GDB 路径。先加载镜像，再使用包内 DEM 和行政参考完成融合。已经安装
+Docker、使用轻量部署包时，镜像文件名为：
 
 ```bash
-sudo mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
-sudo chown -R "$USER":"$USER" /data/paper9
+docker load -i images/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar
+
+./bin/run-paper9-container.sh fuse \
+  --dltb-gdb /客户数据/东兴区/DLTB.gdb \
+  --pdt-gdb /客户数据/东兴区/PDT.gdb \
+  --eco-redline-gdb /客户数据/东兴区/STBHHX.gdb \
+  --permanent-basic-farmland-gdb /客户数据/东兴区/YJJBNTBHTB.gdb
 ```
 
-放入客户数据：
+不要求客户准备县名、图层名、CRS、DEM、行政参考、Python 或 ArcPy。运行时类型、amd64
+架构、正式镜像和县级 `data-root` 都由 wrapper 自动确定。璧山区只替换另一组四个 GDB 路径。
 
-```text
-/data/paper9/input/DLTB_with_authority_slope.gpkg
-/data/paper9/input/admin_units.gpkg
-/data/paper9/input/DEM_placeholder.tif
-```
-
-`DEM_placeholder.tif` 是接口占位文件；业务输入仍是 DLTB 和行政区两类数据。
+如果使用包含 `runtime-packages/` 的容器运行时整包，整包内部为了兼容安装脚本，镜像文件名
+仍为 `images/paper9-mnr-offline-linux-amd64.tar`。两种包的文件名不能混用，应以实际解压目录
+下 `images/` 中的文件为准。
 
 ## 加载镜像并运行
 
-以 amd64 + Docker 为例：
+融合完成后，wrapper 会打印带实际 `data-root` 和镜像名的四条命令，现场人员直接复制执行。
+以下仅以固定目录 `/data/paper9/dongxing` 展示等价写法：
 
 ```bash
-./bin/run-paper9-container.sh check \
-  --runtime docker \
-  --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --config configs/paper9v2_no_net_loss_authority_slope.yml \
-  --image-tar images/paper9-mnr-offline-linux-amd64.tar
+./bin/run-paper9-container.sh check --data-root /data/paper9/dongxing
 
-./bin/run-paper9-container.sh dry-run \
-  --runtime docker \
-  --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --config configs/paper9v2_no_net_loss_authority_slope.yml
+./bin/run-paper9-container.sh dry-run --data-root /data/paper9/dongxing
 
-./bin/run-paper9-container.sh run \
-  --runtime docker \
-  --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --config configs/paper9v2_no_net_loss_authority_slope.yml
+./bin/run-paper9-container.sh run --data-root /data/paper9/dongxing
 
-./bin/run-paper9-container.sh audit \
-  --runtime docker \
-  --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --config configs/paper9v2_no_net_loss_authority_slope.yml
+./bin/run-paper9-container.sh audit --data-root /data/paper9/dongxing
 ```
 
-Podman 时把 `--runtime docker` 改成 `--runtime podman`。
+默认优先自动检测 Docker；现场明确使用 Podman 时才增加 `--runtime podman`。
 `run` 会在 `prepare -> sample -> train -> plan` 后自动执行 `audit`，只有耕地面积不减少、
 平均坡度降低、连片度上升三项硬门禁全部通过才返回成功；单独的 `audit` 动作用于复核既有产物。
-`--image-ref` 是 Paper9v2 正式发布镜像引用。`--image paper9-mnr-offline --arch amd64`
-仍保留给 v1 和历史包兼容使用；Paper9v2 发布、验收和现场运行应显式使用完整
-`paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64` 引用。
+wrapper 在 x86_64 机器上默认选择正式引用
+`paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64`，正常现场命令不需要填写 `--image-ref`。
 
 如需启动 Notebook 扩展模式：
 
@@ -166,14 +153,16 @@ Podman 时把 `--runtime docker` 改成 `--runtime podman`。
 ./bin/run-paper9-container.sh notebook \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --config configs/paper9v2_no_net_loss_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+  --data-root /data/paper9/dongxing \
+  --config configs/paper9v22_authority_constraints.yml \
   --notebook-port 8888 \
   --notebook-token paper9
 ```
 
-Notebook 模式使用同样的数据挂载，交互地图写到 `/data/paper9/outputs/notebook/`，流程日志写到
-`/data/paper9/outputs/logs/`。
+Notebook 模式使用同样的数据挂载，交互地图写到
+`/data/paper9/dongxing/outputs/notebook/`，流程日志写到
+`/data/paper9/dongxing/outputs/logs/`。
 
 如果目标机启用了 SELinux 且 Podman/Docker 挂载目录被拒绝访问，可追加：
 
@@ -187,7 +176,8 @@ Notebook 模式使用同样的数据挂载，交互地图写到 `/data/paper9/ou
 - `run-paper9-container.sh check` 通过环境检查、测试和配置检查。
 - `run-paper9-container.sh dry-run` 打印的 prepare 命令包含 `--reference-layer`。
 - `run-paper9-container.sh dry-run` 打印的 sample 和 plan 命令均包含 `--cultivated-area-floor-delta-ha 0`。
-- `run-paper9-container.sh run` 生成 `outputs/plan_paper9v2_no_net_loss/DLTB_optimized.shp`，
+- `run-paper9-container.sh run` 生成
+  `outputs/plan_paper9v22_authority_constraints/DLTB_optimized.shp`，
   写出 `outputs/audit_summary.json`，并通过 Paper9v2 三项硬门禁。
 - `run-paper9-container.sh audit` 可对既有产物重复执行同一套审计。
 - `outputs/logs/` 中存在 run manifest 和各阶段日志。

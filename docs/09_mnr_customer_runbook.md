@@ -1,338 +1,178 @@
-# 09 自然资源部客户运行手册
+# 自然资源部内网客户运行手册
 
-本文面向离线包部署到自然资源部纯内网后的实际操作人员，回答三件事：
+适用版本：Python 包 `0.3.2`，算法 `paper9v2 2.2.2`，镜像
+`paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64`。
 
-1. 客户需要准备哪些数据。
-2. 离线包怎么运行。
-3. 运行完成后有哪些成果。
+## 1. 客户需要提供什么
 
-如果采用 Docker/Podman 镜像交付，并需要同时说明命令行批处理模式和 Notebook 扩展模式，
-先阅读 `docs/14_dual_mode_image_usage.md`。
+每个县（区）只需要提供四个 File Geodatabase 目录路径：
 
-针对当前自然资源部提供的机器，默认按以下口径部署：
+1. 2025 地类图斑（DLTB）GDB。
+2. 坡度图（PDT）GDB。
+3. 生态保护红线（STBHHX）GDB。
+4. 永久基本农田（YJJBNTBHTB）GDB。
 
-```text
-deepin server 16
-x86_64
-Docker 已重新允许
-使用 paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz
-镜像 paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64
-```
+不要求客户提供县名、图层名、坐标系参数、DEM 或 Python 环境。FileGDB 是以
+`.gdb` 结尾的完整目录，不能只复制其中几个文件。
 
-如果某台机器尚未安装 Docker，先按 `docs/12_container_runtime_airgap.md` 准备
-deepin server 16/CentOS7 兼容的 x86_64 Docker 离线安装包。不要在这批机器上使用 arm64 包，
-也不要继续使用历史 `paper9v2-2.0.0-amd64` 镜像。
+交付包已携带覆盖四川省内江市东兴区和重庆市璧山区的 Copernicus DEM GLO-30
+离线瓦片，以及从客户 `xiangzhen.shp` 提取的 44 个乡镇/街道行政参考面。容器全程以
+`--network none` 运行，不下载数据，不安装 ArcPy，也不调用 ArcGIS。
 
-当前 `paper9v2.1 legacy-amd64` 候选交付包已在本机 Docker 真实数据 E2E 和 Windows Intel
-源码重建测试中通过。验证报告见
-`docs/reports/paper9v21_legacy_amd64_e2e_20260701/REPORT.md`。
-
-## 一、客户需要提供的数据
-
-客户侧只需要提供两类业务输入数据，建议统一放到 `data/input/`。
-
-### 1. 带权威坡度字段的 DLTB 地类图斑
-
-推荐文件名：
-
-```text
-data/input/DLTB_with_authority_slope.gpkg
-```
-
-推荐使用 GeoPackage。Shapefile 也可读，但字段名容易被截断，正式交付不建议优先使用。
-
-必需字段：
-
-| 字段 | 含义 | 要求 |
-| --- | --- | --- |
-| `DLBM` | 地类编码 | 用于识别耕地、林地和其他地类。 |
-| `QSDWDM` | 权属单位代码 | 前 9 位用于乡镇/街道分组；如自然资源部数据可到村级，建议保留完整村级代码。 |
-| `BSM` | 图斑唯一标识 | 每个图斑应唯一。 |
-| `slope_mean` | 权威坡度 | 单位应为度；字段名可在配置中改。 |
-| `geometry` | 面几何 | 必须有有效 CRS，建议为适合项目区面积计算的投影坐标系。 |
-
-如真实字段名不同，在配置中修改：
-
-```yaml
-fields:
-  dlbm: DLBM
-  qsdwdm: QSDWDM
-  bsm: BSM
-
-slope:
-  source: field
-  field: slope_mean
-```
-
-### 2. 可细化到村级的全国行政区数据
-
-推荐文件名：
-
-```text
-data/input/admin_units.gpkg
-```
-
-该数据用于把 DLTB 中的行政代码映射为可读行政单元名称，并支撑后续按行政区解释成果。正式环境应使用自然资源部提供的权威行政区数据，不要使用测试代理数据。
-
-必需字段：
-
-| 字段 | 含义 | 要求 |
-| --- | --- | --- |
-| `XZQDM` | 行政区代码 | 建议包含村/社区级代码；应能与 DLTB 的 `QSDWDM` 前缀对应。 |
-| `XZQMC` | 行政区名称 | 用于 `townships.json`、日志和成果解释中的行政区名称。 |
-| `geometry` | 行政区面几何 | 必须覆盖 DLTB 项目区。 |
-
-可选但建议保留字段：
-
-| 字段 | 含义 |
-| --- | --- |
-| `admin_level` | 行政层级，如 province/city/county/town/village。 |
-| `admin_parent_code` | 上级行政区代码。 |
-
-如行政区名称字段不是 `XZQMC`，在配置中修改：
-
-```yaml
-data:
-  admin_units: data/input/admin_units.gpkg
-
-fields:
-  admin_name: XZQMC
-```
-
-### 技术占位文件：DEM
-
-当前 MNR 离线包默认从 DLTB 字段读取权威坡度，不重新用 DEM 计算坡度。由于原 Paper9 prepare 接口保留 `--dem` 参数，配置中仍需要：
-
-```yaml
-data:
-  dem: data/input/DEM_placeholder.tif
-```
-
-这是接口占位文件，不是客户需要提供的第三个业务输入。部署人员可随包放置一个合法的小 GeoTIFF 占位文件。
-
-## 二、Docker 镜像离线包运行过程（当前推荐）
-
-### 1. 解包和校验
+## 2. 解包、校验和加载
 
 ```bash
-tar -xzf paper9-mnr-offline-container-legacy-amd64-20260701.tar.gz
-cd paper9-mnr-offline-container-legacy-amd64-20260701
+tar -xzf paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64.tar.gz
+cd paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64
 sha256sum -c SHA256SUMS.txt
+docker load -i images/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar
 ```
 
-如系统提供的是 `shasum`：
+如果系统只提供 `shasum`，校验命令改为：
 
 ```bash
 shasum -a 256 -c SHA256SUMS.txt
 ```
 
-### 2. 加载镜像
+## 3. 一条命令融合一个县
+
+首次已完成镜像加载后，以下四个值替换为客户实际 GDB 目录。融合命令只需要填写这四个
+客户数据路径，不需要填写运行时、CPU 架构、镜像名、县名、图层名、CRS、DEM 或行政数据：
 
 ```bash
-docker load -i images/paper9-mnr-offline-paper9v2-2.1.0-legacy-linux-amd64.tar
+./bin/run-paper9-container.sh fuse \
+  --dltb-gdb /客户数据/东兴区/DLTB.gdb \
+  --pdt-gdb /客户数据/东兴区/PDT.gdb \
+  --eco-redline-gdb /客户数据/东兴区/STBHHX.gdb \
+  --permanent-basic-farmland-gdb /客户数据/东兴区/YJJBNTBHTB.gdb
 ```
 
-### 3. 准备数据目录
+脚本会自动完成：
+
+- 检查四个路径并以只读方式挂载 GDB。
+- 在每个 GDB 中自动选择唯一面图层；存在多个图层时按业务图层名和权威字段识别。
+- 从 DLTB 行政代码或路径推断县区，不要求填写县名。
+- 读取数据自身 CRS；面积计算自动沿用合格米制投影，否则推断当地 UTM。
+- 从包内 DEM 计算连续坡度值；PDT 只比较坡度等级，不影响连续坡度、交换锁或优化结果。
+- 根据 DLTB 县级代码从包内行政参考层自动选择东兴区 29 个或璧山区 15 个乡镇面。
+- 叠加生态保护红线和永久基本农田，写入双向互换锁定字段。
+- 生成 Paper9 主输入、行政名称参考层、约束审计层、坡度占位栅格和融合报告。
+
+未指定 `--data-root` 时，脚本会在当前目录的 `paper9-data/` 下按 DLTB 路径生成
+独立目录，并在完成时打印实际绝对路径。融合完成后脚本还会直接打印带正确 `DATA_ROOT`
+和镜像名的 `check`、`dry-run`、`run`、`audit` 四条命令；现场人员按顺序复制执行即可。
+
+处理璧山区时再次执行同一条最小命令，只替换四个 GDB 路径：
 
 ```bash
-sudo mkdir -p /data/paper9/input /data/paper9/working /data/paper9/outputs
-sudo chown -R "$USER":"$USER" /data/paper9
+./bin/run-paper9-container.sh fuse \
+  --dltb-gdb /客户数据/璧山区/DLTB.gdb \
+  --pdt-gdb /客户数据/璧山区/PDT.gdb \
+  --eco-redline-gdb /客户数据/璧山区/STBHHX.gdb \
+  --permanent-basic-farmland-gdb /客户数据/璧山区/YJJBNTBHTB.gdb
 ```
 
-放入数据：
+自动目录会根据 DLTB 完整路径隔离两县。只有在客户运维要求成果固定写入指定数据盘时，
+才额外增加 `--data-root /data/paper9/dongxing` 或 `--data-root /data/paper9/bishan`；两县不得
+使用同一个 `data-root`。所有 `.gdb` 参数必须指向完整目录，路径包含空格时必须用双引号包住。
+
+## 4. 融合后检查
+
+`DATA_ROOT/input/` 应包含：
 
 ```text
-/data/paper9/input/DLTB_with_authority_slope.gpkg
-/data/paper9/input/admin_units.gpkg
-/data/paper9/input/DEM_placeholder.tif
+DLTB_with_authority_slope.gpkg
+admin_units.gpkg
+authority_constraints.gpkg
+DEM_placeholder.tif
+fusion_summary.csv
+fusion_report.json
 ```
 
-### 4. 检查、预演、运行和审计
+必须打开 `fusion_report.json`，至少确认：
+
+- `arcgis_or_arcpy_used` 为 `false`。
+- `network_access_used` 为 `false`。
+- `source.mode` 为 `four_sources`，四个路径和自动选择的图层均正确。
+- `slope.null_count` 为 `0`；否则融合命令会直接失败。
+- `constraints.exchange_locked_parcels`、红线重叠数和永久基本农田重叠数有记录。
+- `dem.paths` 指向包内三个 GLO-30 瓦片，`cropped_to_dltb_bounds` 为 `true`。
+- `pdt.role` 为 `quality_control_only`，三个 `affects_*` 字段均为 `false`。
+- `administrative_reference.mode` 为 `bundled_township_spatial_reference`，县级代码和要素数正确。
+
+`DEM_placeholder.tif` 由脚本自动生成，只满足 Paper9 的既有输入接口。真正的坡度已写入
+DLTB 的 `slope_mean`，不需要也不能由客户手工复制 DEM 作为占位文件。
+
+## 5. 正式运行
+
+优先直接复制融合命令最后打印的四条命令。以下是等价格式，其中 `DATA_ROOT` 替换为融合
+命令打印的实际路径：
 
 ```bash
-./bin/run-paper9-container.sh check \
-  --runtime docker \
-  --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --config configs/paper9v2_no_net_loss_authority_slope.yml \
-  --data-root /data/paper9
+./bin/run-paper9-container.sh check --data-root DATA_ROOT
 
-./bin/run-paper9-container.sh dry-run \
-  --runtime docker \
-  --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --config configs/paper9v2_no_net_loss_authority_slope.yml \
-  --data-root /data/paper9
+./bin/run-paper9-container.sh dry-run --data-root DATA_ROOT
 
-./bin/run-paper9-container.sh run \
-  --runtime docker \
-  --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --config configs/paper9v2_no_net_loss_authority_slope.yml \
-  --data-root /data/paper9
+./bin/run-paper9-container.sh run --data-root DATA_ROOT
 
-./bin/run-paper9-container.sh audit \
-  --runtime docker \
-  --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --config configs/paper9v2_no_net_loss_authority_slope.yml \
-  --data-root /data/paper9
+./bin/run-paper9-container.sh audit --data-root DATA_ROOT
 ```
 
-确认 `dry-run` 中 `prepare` 命令包含：
+`dry-run` 中应看到 `--slope-method from_field --slope-field slope_mean`、
+`--reference-layer data/input/admin_units.gpkg` 和
+`--cultivated-area-floor-delta-ha 0`。任何路径或字段检查失败时都不要执行 `run`。
+
+## 6. 保护约束口径
+
+生态保护红线是生态功能极重要或生态环境极敏感脆弱区域的强制性保护边界；永久基本农田
+是为国家粮食安全划定、实行永久特殊保护的耕地。普通空间优化不等于行政审批、生态修复
+审批或永久基本农田整改认定。
+
+因此本版采用保守硬约束：DLTB 与任一保护层重叠超过 1 平方米时，写入
+`EXCH_LOCK=1`、`LOCK_C2F=1`、`LOCK_F2C=1`，该图斑不参与耕地转林地，也不参与
+林地转耕地。永久基本农田内出现现状林地、生态红线内出现现状耕地时只输出人工复核标记，
+模型不会自动把它解释为允许整改。
+
+## 7. 成果与验收
+
+默认成果位于：
 
 ```text
---slope-method from_field --slope-field slope_mean
---reference-layer data/input/admin_units.gpkg --reference-name-field XZQMC
+DATA_ROOT/outputs/plan_paper9v22_authority_constraints/DLTB_optimized.shp
+DATA_ROOT/outputs/plan_paper9v22_authority_constraints/mpc_summary.json
+DATA_ROOT/outputs/audit_summary.json
+DATA_ROOT/outputs/logs/
 ```
 
-### 5. Notebook 扩展模式
-
-```bash
-./bin/run-paper9-container.sh notebook \
-  --runtime docker \
-  --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --config configs/paper9v2_no_net_loss_authority_slope.yml \
-  --data-root /data/paper9 \
-  --notebook-port 8888 \
-  --notebook-token paper9
-```
-
-浏览器访问：
+发生成功或失败都要保留整个 `DATA_ROOT/outputs/logs/`，其中包括：
 
 ```text
-http://服务器IP:8888/lab?token=paper9
+container-wrapper-*.log
+authoritative_fusion-*.log
+authoritative_fusion-*.jsonl
+authoritative_fusion-*-failure.json      仅失败时生成
+run_full_pipeline-*.log
+run_full_pipeline-*.json
+*-prepare.log / *-sample.log / *-train.log / *-plan.log / *-audit.log
 ```
 
-Notebook 只作为输入核查、过程解释、日志查看和地图可视化入口。正式生产运行仍以
-`check -> dry-run -> run -> audit` 为准。
+向外网支持人员反馈问题时，除敏感数据外应整体带回该日志目录和 `input/fusion_report.json`，
+不要只截取终端最后一行。可读日志用于快速定位，JSONL 和 manifest 用于还原阶段、参数、
+库版本、图层字段、CRS、范围、数据量、几何修复、DEM 窗口、约束统计、输出哈希及耗时。
 
-## 三、原生 Python 离线包运行过程（备用）
+`audit_summary.json` 的三项默认硬门禁必须全部通过：县域耕地面积不减少、耕地平均坡度
+降低、连片度上升。百亩方数量和面积作为报告与优化指标，不是默认硬门禁。
 
-本节只适用于目标 Linux 已额外交付并验证 Python/GDAL/Torch/ONNX Runtime 运行时包的情况。
-当前 Docker 交付不需要在目标机直接运行这些 Python 命令。
+本地单元测试、模拟数据和镜像验证不能替代客户真实四个 GDB 的正式验收。两县都应分别
+保留融合报告、运行 manifest、审计摘要、最终矢量及整套 SHA-256 记录。
 
-### 1. 环境检查
+## 8. 常见失败
 
-在离线包根目录执行：
-
-```powershell
-python scripts\00_check_env.py --no-heavy
-python scripts\00_check_env.py
-python -m pytest tests -q
-```
-
-`--no-heavy` 做轻量检查；完整检查会导入 GeoPandas、Rasterio、Torch、ONNX Runtime 等依赖。
-
-### 2. 检查配置
-
-默认 Paper9v2.1 业务约束配置：
-
-```powershell
-python -m paper9_mnr.cli check-config configs\paper9v2_no_net_loss_authority_slope.yml
-```
-
-带耕地面积和百亩方面积不降低约束的配置：
-
-```powershell
-python -m paper9_mnr.cli check-config configs\no_net_loss_authority_slope.yml
-```
-
-### 3. 先打印命令，不直接运行
-
-```powershell
-python scripts\run_full_pipeline.py configs\paper9v2_no_net_loss_authority_slope.yml --dry-run
-```
-
-确认 `prepare` 命令中包含：
-
-```text
---slope-method from_field --slope-field slope_mean
---reference-layer data/input/admin_units.gpkg --reference-name-field XZQMC
-```
-
-### 4. 正式运行完整流程
-
-```powershell
-python scripts\run_full_pipeline.py configs\paper9v2_no_net_loss_authority_slope.yml
-```
-
-完整流程包括：
-
-| 阶段 | 脚本 | 作用 |
-| --- | --- | --- |
-| prepare | `scripts\01_prepare.py` | 读取 DLTB、权威坡度和行政区参考层，生成图斑块与县域环境输入。 |
-| sample | `scripts\02_sample.py` | 采样状态、动作、奖励标签。 |
-| train | `scripts\03_train.py` | 训练 Paper9 world model ensemble，并导出 ONNX。 |
-| plan | `scripts\04_plan.py` | 使用 MPC 生成地类空间布局优化方案。 |
-
-如果需要分步排查，可按顺序运行：
-
-```powershell
-python scripts\01_prepare.py configs\paper9v2_no_net_loss_authority_slope.yml
-python scripts\02_sample.py configs\paper9v2_no_net_loss_authority_slope.yml
-python scripts\03_train.py configs\paper9v2_no_net_loss_authority_slope.yml
-python scripts\04_plan.py configs\paper9v2_no_net_loss_authority_slope.yml
-python scripts\05_audit.py configs\paper9v2_no_net_loss_authority_slope.yml --write
-```
-
-修改 reward、约束或业务偏好后，应至少重新运行 `sample -> train -> plan`，不能只用旧模型重跑 `plan`。
-
-## 四、运行后的成果
-
-### 1. 对外主要成果
-
-默认 Paper9v2.1 配置输出：
-
-```text
-outputs/plan_paper9v2_no_net_loss/DLTB_optimized.shp
-outputs/plan_paper9v2_no_net_loss/mpc_summary.json
-outputs/audit_summary.json
-```
-
-`DLTB_optimized.shp` 是优化后的 DLTB 图斑成果，保留原始图斑属性，并新增优化字段：
-
-| 字段 | 含义 |
-| --- | --- |
-| `ORIG_DLBM` | 原始地类编码。 |
-| `OPT_DLBM` | 优化建议后的地类编码。 |
-| `OPT_DLMC` | 优化建议后的地类名称。 |
-| `CHG_FLAG` | 0=不变，1=耕地转林地，2=林地转耕地。 |
-
-### 2. 指标摘要
-
-`mpc_summary.json` 记录本次规划参数和核心指标，包括：
-
-- 平均坡度变化。
-- 连片性变化。
-- 百亩方面积变化。
-- MPC 步数。
-- 输入图斑数、进入县域环境的图斑数。
-- 耕地转林地数量、林地转耕地数量、不变数量。
-
-`outputs/audit_summary.json` 记录关键产物是否存在，适合做文件级交付检查。
-其中 `constraint_status.hard_constraint_passed` 必须为 `true`，并应记录耕地面积、
-坡度和连片度三项 hard gate。
-
-### 3. 中间过程产物
-
-```text
-data/working/prepared_paper9v2_no_net_loss/dem_slope_analysis/output/DLTB_with_slope.shp
-data/working/prepared_paper9v2_no_net_loss/townships.json
-data/working/prepared_paper9v2_no_net_loss/results_real/blocks/
-data/working/prepared_paper9v2_no_net_loss/tool2/transitions.npz
-data/working/prepared_paper9v2_no_net_loss/tool2/pairwise.npz
-data/working/prepared_paper9v2_no_net_loss/tool3/
-```
-
-这些产物用于复核流程、复现实验和后续模型重训。正式交付时建议与配置文件一起归档，保证结果可追溯。
-
-## 五、交付前检查清单
-
-- DLTB 和行政区数据均来自客户权威数据源。
-- DLTB、行政区和 DEM 占位文件均有 CRS，且配置中的 `crs` 与项目区投影坐标系一致。
-- `check-config` 通过。
-- `run_full_pipeline.py --dry-run` 中 prepare 命令包含行政区参考图层参数。
-- `scripts\05_audit.py <config> --write` 显示关键成果均存在。
-- 对 `DLTB_optimized.shp` 做面积、坡度、连片度、百亩方、行政区分组和硬约束复核。
+- `not a FileGDB directory`：传入的不是完整 `.gdb` 目录，或容器运行用户没有读取权限。
+- `Cannot identify`：一个 GDB 存在多个候选面图层且字段也无法唯一判定，应先由数据提供方
+  清理该 GDB；客户正常流程不填写图层名。
+- `no local DEM slope`：图斑超出随包 DEM 范围或落在 NoData，脚本不会用全县中位数填充。
+- `DLTB ... field`：客户字段与已提供的权威结构不一致，应记录真实字段清单后更新融合版本，
+  不能现场随意映射。
+- Docker 权限错误：由客户运维配置 Docker 用户组或按其制度使用 `sudo`，不要改变数据权限
+  或把四个 GDB 复制进镜像。

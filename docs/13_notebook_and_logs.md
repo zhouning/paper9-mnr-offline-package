@@ -17,8 +17,8 @@ Notebook 不是正式运行的唯一入口。正式生产运行仍建议使用
 runtime = docker
 arch = amd64
 data_root = /data/paper9
-image_ref = paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64
-config = configs/paper9v2_no_net_loss_authority_slope.yml
+image_ref = paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64
+config = configs/paper9v22_authority_constraints.yml
 ```
 
 ## Notebook 启动
@@ -29,8 +29,8 @@ config = configs/paper9v2_no_net_loss_authority_slope.yml
 ./bin/run-paper9-container.sh notebook \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64 \
-  --config configs/paper9v2_no_net_loss_authority_slope.yml \
+  --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+  --config configs/paper9v22_authority_constraints.yml \
   --data-root /data/paper9 \
   --notebook-port 8888 \
   --notebook-token paper9
@@ -64,17 +64,17 @@ http://127.0.0.1:8888/lab?token=paper9
 这些 notebook 读取同一份配置：
 
 ```text
-configs/paper9v2_no_net_loss_authority_slope.yml
+configs/paper9v22_authority_constraints.yml
 ```
 
 Notebook 模式会读取容器环境变量 `PAPER9_CONFIG`。使用
-`run-paper9-container.sh notebook --config configs/paper9v2_no_net_loss_authority_slope.yml` 启动时，wrapper 会把
+`run-paper9-container.sh notebook --config configs/paper9v22_authority_constraints.yml` 启动时，wrapper 会把
 该配置传入 Notebook。
 
 如未通过 wrapper 注入配置，也可以在每个 notebook 的第一个代码单元把 `CONFIG` 改成：
 
 ```python
-CONFIG = "configs/paper9v2_no_net_loss_authority_slope.yml"
+CONFIG = "configs/paper9v22_authority_constraints.yml"
 ```
 
 并使用同样的数据挂载：
@@ -115,7 +115,23 @@ Notebook 可在纯内网中完成交互式地图可视化，不依赖外网地�
 /data/paper9/outputs/logs
 ```
 
-每次 `scripts/run_full_pipeline.py` 运行会生成：
+每次 wrapper 和融合运行会生成：
+
+```text
+container-wrapper-YYYYMMDDTHHMMSSZ-PID.log
+authoritative_fusion-RUN_ID.log
+authoritative_fusion-RUN_ID.jsonl
+authoritative_fusion-RUN_ID-failure.json    仅失败时
+authoritative_fusion-latest.log
+authoritative_fusion-latest.jsonl
+```
+
+wrapper 日志覆盖宿主机架构、容器运行时版本、镜像引用、数据根目录、四个 GDB 路径、
+包内 DEM/行政参考路径及命令退出状态。融合日志覆盖图层识别、完整字段、CRS、范围、几何
+修复、DEM 窗口、坡度统计、PDT 质检、保护约束、输出哈希和阶段耗时。失败 JSON 额外保留
+traceback 和 Python/GDAL/GeoPandas/Pyogrio/Rasterio 等版本信息。
+
+每次 `scripts/run_full_pipeline.py` 运行还会生成：
 
 ```text
 run_full_pipeline-YYYYMMDD-HHMMSS.log
@@ -129,6 +145,10 @@ YYYYMMDD-HHMMSS-audit.log
 
 JSON manifest 记录配置文件、每个阶段的命令、开始/结束时间、返回码、阶段日志路径和
 运行状态。现场诊断优先查看 manifest，再按失败阶段打开对应日志。
+
+从内网带回故障材料时，应整体复制该县 `outputs/logs/` 和 `input/fusion_report.json`，不要
+只提供截图或最后几行输出。日志可能包含客户文件路径、字段名和统计值，应按客户数据安全
+制度传递和保管。
 
 Paper9v2 的正式 `run` 已把 audit 作为最后阶段。现场解释时重点查看：
 

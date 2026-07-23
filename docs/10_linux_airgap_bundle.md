@@ -16,7 +16,8 @@
 | Paper9 源码包 | 本仓库的 `src/`、`scripts/`、`configs/`、`docs/`、`pyproject.toml`、`environment.yml`。 |
 | Linux Python 运行时 | Python 3.11，以及 GeoPandas、Rasterio、Fiona、PyProj、GDAL、PROJ、GEOS、PyTorch、ONNX、ONNX Runtime 等 native 依赖。 |
 | 启动脚本 | 激活环境、执行 `00_check_env.py`、`check-config`、`run_full_pipeline.py`。 |
-| 客户数据 | `data/input/DLTB_with_authority_slope.gpkg`、`data/input/admin_units.gpkg` 和 `DEM_placeholder.tif`。 |
+| 客户数据 | 每县四个 FileGDB：DLTB、PDT、生态保护红线、永久基本农田。 |
+| 离线高程 | Copernicus DEM GLO-30 `N29E104/N29E105/N29E106` 及 `DEM_MANIFEST.json`。 |
 | 配置文件 | 至少包含一份按真实 CRS、字段名和输出目录修改后的 `configs/*.yml`。 |
 
 macOS 上创建的 conda 环境不能直接拷贝到 Linux 使用；必须在 Linux x86_64 或与目标

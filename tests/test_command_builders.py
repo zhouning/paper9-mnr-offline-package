@@ -146,7 +146,7 @@ def test_stage_commands_can_use_current_python_executable():
 def test_full_pipeline_commands_append_audit_gate():
     commands = build_full_pipeline_commands(
         _config(),
-        config_path="configs/paper9v2_no_net_loss_authority_slope.yml",
+        config_path="configs/paper9v22_authority_constraints.yml",
         python_executable="/opt/conda/envs/paper9/bin/python",
     )
 
@@ -154,6 +154,6 @@ def test_full_pipeline_commands_append_audit_gate():
     assert commands["audit"] == [
         "/opt/conda/envs/paper9/bin/python",
         "scripts/05_audit.py",
-        "configs/paper9v2_no_net_loss_authority_slope.yml",
+        "configs/paper9v22_authority_constraints.yml",
         "--write",
     ]

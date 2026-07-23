@@ -17,15 +17,15 @@ def _load_run_full_pipeline_module():
 
 def test_build_run_metadata_uses_config_algorithm_and_image_ref(monkeypatch):
     module = _load_run_full_pipeline_module()
-    monkeypatch.setenv("PAPER9_IMAGE_REF", "paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64")
-    config = {"algorithm": {"name": "paper9v2", "version": "2.1.0"}}
+    monkeypatch.setenv("PAPER9_IMAGE_REF", "paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64")
+    config = {"algorithm": {"name": "paper9v2", "version": "2.2.2"}}
 
     metadata = module._build_run_metadata(config)
 
-    assert metadata["package_version"] == "0.2.1"
+    assert metadata["package_version"] == "0.3.2"
     assert metadata["algorithm_name"] == "paper9v2"
-    assert metadata["algorithm_version"] == "2.1.0"
-    assert metadata["image_ref"] == "paper9-mnr-offline:paper9v2-2.1.0-legacy-amd64"
+    assert metadata["algorithm_version"] == "2.2.2"
+    assert metadata["image_ref"] == "paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64"
 
 
 def test_build_run_metadata_does_not_label_legacy_config_as_paper9v2(monkeypatch):
@@ -34,7 +34,7 @@ def test_build_run_metadata_does_not_label_legacy_config_as_paper9v2(monkeypatch
 
     metadata = module._build_run_metadata({})
 
-    assert metadata["package_version"] == "0.2.1"
+    assert metadata["package_version"] == "0.3.2"
     assert metadata["algorithm_name"] == ""
     assert metadata["algorithm_version"] == ""
     assert metadata["image_ref"] == ""
@@ -44,8 +44,8 @@ def test_run_and_audit_scripts_default_to_paper9v2_config():
     run_script = (PACKAGE_ROOT / "scripts/run_full_pipeline.py").read_text(encoding="utf-8")
     audit_script = (PACKAGE_ROOT / "scripts/05_audit.py").read_text(encoding="utf-8")
 
-    assert 'default=str(ROOT / "configs" / "paper9v2_no_net_loss_authority_slope.yml")' in run_script
-    assert 'default=str(ROOT / "configs" / "paper9v2_no_net_loss_authority_slope.yml")' in audit_script
+    assert 'default=str(ROOT / "configs" / "paper9v22_authority_constraints.yml")' in run_script
+    assert 'default=str(ROOT / "configs" / "paper9v22_authority_constraints.yml")' in audit_script
 
 
 def test_build_full_pipeline_commands_append_audit_gate():
@@ -73,7 +73,7 @@ def test_build_full_pipeline_commands_append_audit_gate():
 
     commands = module.build_full_pipeline_commands(
         config,
-        config_path="configs/paper9v2_no_net_loss_authority_slope.yml",
+        config_path="configs/paper9v22_authority_constraints.yml",
         python_executable="/opt/paper9/bin/python",
     )
 
@@ -81,6 +81,6 @@ def test_build_full_pipeline_commands_append_audit_gate():
     assert commands["audit"] == [
         "/opt/paper9/bin/python",
         "scripts/05_audit.py",
-        "configs/paper9v2_no_net_loss_authority_slope.yml",
+        "configs/paper9v22_authority_constraints.yml",
         "--write",
     ]

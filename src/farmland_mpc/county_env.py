@@ -29,7 +29,6 @@ import numpy as np
 import geopandas as gpd
 import gymnasium as gym
 from gymnasium import spaces
-from collections import deque
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -182,6 +181,18 @@ class CountyLevelEnv(gym.Env):
         gdf_swap = gdf_swap.reset_index(drop=True)
         self.n_parcels = len(gdf_swap)
 
+        # Authority fusion marks parcels in ecological redlines or permanent
+        # basic farmland with EXCH_LOCK=1. Locked parcels remain in the state
+        # and all county metrics, but may never be selected for either side of
+        # a cultivated-land/forest exchange.
+        if 'EXCH_LOCK' in gdf_swap.columns:
+            lock_values = gdf_swap['EXCH_LOCK'].fillna(0).astype(str).str.strip().str.lower()
+            self.exchange_locked = lock_values.isin(
+                {'1', '1.0', 'true', 'yes', 'y'}
+            ).to_numpy(dtype=bool)
+        else:
+            self.exchange_locked = np.zeros(self.n_parcels, dtype=bool)
+
         # Project for area computation
         gdf_proj = gdf_swap.to_crs(PROJ_CRS)
 
@@ -226,7 +237,10 @@ class CountyLevelEnv(gym.Env):
             self._township_parcel_indices[code] = indices
 
         n_assigned = int((self.parcel_township >= 0).sum())
-        print(f"  {self.n_parcels} swappable parcels, {n_assigned} assigned to townships")
+        print(
+            f"  {self.n_parcels} farm/forest parcels, {n_assigned} assigned to "
+            f"townships, {int(self.exchange_locked.sum())} authority-locked"
+        )
         t_load = time.time() - t0
 
         # Build adjacency (Queen contiguity across ALL parcels)
@@ -393,9 +407,11 @@ class CountyLevelEnv(gym.Env):
         # Pre-fetch static per-parcel data in padded form
         self._pad_slopes = self.slopes[self._pad_idx]   # (n_blocks, max_bp)
         self._pad_areas = self.areas[self._pad_idx]      # (n_blocks, max_bp)
+        self._pad_exchange_eligible = ~self.exchange_locked[self._pad_idx]
         # Zero out padding positions
         self._pad_slopes[~self._pad_mask] = 0.0
         self._pad_areas[~self._pad_mask] = 0.0
+        self._pad_exchange_eligible &= self._pad_mask
 
         # Pre-compute padded block adjacency for vectorized neighbor features
         max_adj = int(self.block_n_adj.max()) if n_blocks > 0 else 0
@@ -411,8 +427,9 @@ class CountyLevelEnv(gym.Env):
         """Initialize per-block available parcel counters."""
         for b, parcels in enumerate(self.block_parcels):
             types = self.land_use[parcels]
-            self._block_farm_avail[b] = int(((types == FARMLAND) & ~self.swapped[parcels]).sum())
-            self._block_forest_avail[b] = int(((types == FOREST) & ~self.swapped[parcels]).sum())
+            available = ~self.swapped[parcels] & ~self.exchange_locked[parcels]
+            self._block_farm_avail[b] = int(((types == FARMLAND) & available).sum())
+            self._block_forest_avail[b] = int(((types == FOREST) & available).sum())
 
     # ==================================================================
     # Metrics
@@ -596,7 +613,7 @@ class CountyLevelEnv(gym.Env):
         """Check whether a block has any slope-improving pair under area floor."""
         parcels = self.block_parcels[block_id]
         types = self.land_use[parcels]
-        avail = ~self.swapped[parcels]
+        avail = ~self.swapped[parcels] & ~self.exchange_locked[parcels]
 
         farm_idx = parcels[(types == FARMLAND) & avail]
         forest_idx = parcels[(types == FOREST) & avail]
@@ -615,7 +632,7 @@ class CountyLevelEnv(gym.Env):
 
         for _ in range(max_swaps):
             types = self.land_use[parcels]
-            avail = ~self.swapped[parcels]
+            avail = ~self.swapped[parcels] & ~self.exchange_locked[parcels]
 
             farm_mask = (types == FARMLAND) & avail
             forest_mask = (types == FOREST) & avail
@@ -655,7 +672,6 @@ class CountyLevelEnv(gym.Env):
     def _get_block_features(self):
         """Per-block feature matrix (n_blocks x K_BLOCK=17). Vectorized."""
         n_blocks = self.n_blocks
-        max_bp = self._max_parcels_per_block
         features = np.zeros((n_blocks, K_BLOCK), dtype=np.float32)
 
         # Fetch dynamic per-parcel data using padded indices
@@ -663,8 +679,16 @@ class CountyLevelEnv(gym.Env):
         pad_swapped = self.swapped[self._pad_idx]        # (n_blocks, max_bp)
 
         # Masks: farmland/forest that are available and within real parcels
-        fm_mask = (pad_types == FARMLAND) & (~pad_swapped) & self._pad_mask  # (n_blocks, max_bp)
-        ff_mask = (pad_types == FOREST) & (~pad_swapped) & self._pad_mask
+        fm_mask = (
+            (pad_types == FARMLAND)
+            & (~pad_swapped)
+            & self._pad_exchange_eligible
+        )
+        ff_mask = (
+            (pad_types == FOREST)
+            & (~pad_swapped)
+            & self._pad_exchange_eligible
+        )
 
         # For farm area of all farmland (including swapped) -- needed for neighbor features
         all_fm_mask = (pad_types == FARMLAND) & self._pad_mask

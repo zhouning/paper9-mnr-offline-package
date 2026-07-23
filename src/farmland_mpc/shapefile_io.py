@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 import geopandas as gpd
@@ -86,6 +85,17 @@ def write_optimized_dltb(input_fc, output_fc, env,
 
     initial_types = env.initial_types
     final_types = env.land_use
+    exchange_locked = getattr(
+        env, "exchange_locked", np.zeros(len(initial_types), dtype=bool)
+    )
+    locked_changes = np.asarray(exchange_locked, dtype=bool) & (
+        np.asarray(initial_types) != np.asarray(final_types)
+    )
+    if bool(locked_changes.any()):
+        raise RuntimeError(
+            "Authority constraint violation: "
+            f"{int(locked_changes.sum())} EXCH_LOCK parcels changed land use."
+        )
 
     _say(f"[shp_out] Reading {input_fc} ...")
     gdf = gpd.read_file(input_fc)
@@ -233,7 +243,7 @@ def _to_shapefile_safe(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
                 out = out.drop(columns=[col])
                 continue
         # String-like columns: clamp to DBF text cap
-        if dtype == object or str(dtype).startswith("string"):
+        if str(dtype) == "object" or str(dtype).startswith("string"):
             ser = out[col].astype(str)
             too_long = (ser.str.len() > SHP_TEXT_MAX).any()
             if too_long:

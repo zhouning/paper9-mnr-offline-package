@@ -16,7 +16,7 @@ sys.path.insert(0, str(SRC))
 
 from paper9_mnr.config import load_config, validate_config
 from paper9_mnr.pipeline import build_full_pipeline_commands, format_command
-from paper9_mnr.version import ALGORITHM_NAME, ALGORITHM_VERSION, PACKAGE_VERSION
+from paper9_mnr.version import PACKAGE_VERSION
 
 
 def _timestamp() -> str:
@@ -85,7 +85,7 @@ def _run_and_tee(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run the full Paper9 offline workflow.")
-    parser.add_argument("config", nargs="?", default=str(ROOT / "configs" / "paper9v2_no_net_loss_authority_slope.yml"))
+    parser.add_argument("config", nargs="?", default=str(ROOT / "configs" / "paper9v22_authority_constraints.yml"))
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
         "--log-dir",

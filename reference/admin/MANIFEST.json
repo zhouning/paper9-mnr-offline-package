@@ -1,0 +1,50 @@
+{
+  "schema_version": "paper9.admin_reference.v1",
+  "source": {
+    "name": "xiangzhen.shp",
+    "provided_path": "/Users/zhouning/Downloads/shp/xiangzhen.shp",
+    "driver": "ESRI Shapefile",
+    "crs": "EPSG:4326",
+    "feature_count": 43655,
+    "dbf_last_update": "2021-06-22",
+    "encoding": "UTF-8"
+  },
+  "selection": {
+    "county_names": [
+      "东兴区",
+      "璧山区"
+    ],
+    "county_codes": [
+      "511011",
+      "500120"
+    ]
+  },
+  "geometry_repair": {
+    "feature": "重庆市璧山区青杠街道",
+    "reason": "The source MultiPolygon contained a detached component about 200 km outside Bishan.",
+    "removed_component_bounds": [
+      107.48524900704258,
+      30.747516752013393,
+      107.5049830031264,
+      30.7736157350976
+    ],
+    "retained_component_bounds": [
+      106.18919823327187,
+      29.436601820251408,
+      106.26943236870531,
+      29.530346140354247
+    ]
+  },
+  "output": {
+    "path": "reference/admin/xiangzhen_dongxing_bishan.gpkg",
+    "layer": "admin_reference",
+    "geometry_type": "MultiPolygon",
+    "crs": "EPSG:4326",
+    "feature_count": 44,
+    "dongxing_feature_count": 29,
+    "bishan_feature_count": 15,
+    "sha256": "bb72218b903024f804523877d5c52e0ef5fd20d8e671bdbdf480b500e46da3cb"
+  },
+  "role": "Township name and spatial reference only. It does not create ecological, farmland, or exchange constraints.",
+  "caveat": "The source date is 2021-06-22 and the source contains names but no township codes. Validate administrative changes against the customer's 2025 records."
+}
