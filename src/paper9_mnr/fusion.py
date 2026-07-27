@@ -37,9 +37,12 @@ from rasterio.features import rasterize
 from shapely import area as shape_area
 from shapely import intersection, make_valid, union_all
 
+from farmland_mpc.landuse import (
+    LandUseCodeError,
+    analyse_land_use_codes,
+    classify_land_use as classify_land_use_code,
+)
 
-FARMLAND_PREFIXES = ("011", "012", "013")
-FOREST_PREFIXES = ("031", "032", "033")
 SLOPE_GRADE_BOUNDS = (2.0, 6.0, 15.0, 25.0)
 
 
@@ -523,7 +526,7 @@ def standardise_dltb(dltb: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
             out[name] = out[source].map(normaliser)
 
     set_standard("BSM", bsm, _normalise_code)
-    set_standard("DLBM", dlbm, lambda value: _normalise_code(value, width=3))
+    set_standard("DLBM", dlbm, _normalise_code)
     set_standard("DLMC", dlmc, lambda value: "" if pd.isna(value) else str(value).strip())
     set_standard("QSDWDM", qsdwdm, _normalise_code)
     if qsdwmc is not None:
@@ -542,19 +545,20 @@ def standardise_dltb(dltb: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         raise FusionError(f"DLTB BSM is not unique: {duplicates} duplicate identifiers.")
     if not out["QSDWDM"].str.len().ge(9).all():
         raise FusionError("DLTB QSDWDM must contain at least nine digits for Paper9 township grouping.")
+    try:
+        code_report = analyse_land_use_codes(
+            out["DLBM"], require_farmland=True, require_forest=True
+        )
+    except LandUseCodeError as exc:
+        raise FusionError(str(exc)) from exc
     out["category"] = out["DLBM"].map(classify_land_use)
+    out.attrs["land_use_codes"] = code_report.as_dict()
     return out
 
 
 def classify_land_use(dlbm: object) -> str:
-    code = _normalise_code(dlbm, width=3)
-    if code.startswith(FARMLAND_PREFIXES):
-        return "Farmland"
-    if code.startswith(FOREST_PREFIXES):
-        return "Forest"
-    if code.startswith(("021", "022", "023")):
-        return "Orchard"
-    return "Other"
+    category = classify_land_use_code(dlbm)
+    return category.title() if category in {"farmland", "forest", "orchard"} else "Other"
 
 
 def choose_metric_crs(dltb: gpd.GeoDataFrame, metric_crs: str | None) -> CRS:
@@ -905,8 +909,9 @@ def add_constraint_fields(
     reasons[eco_hit] = "ECO_REDLINE"
     reasons[pbf_hit] = np.where(reasons[pbf_hit] == "", "PERMANENT_BASIC_FARMLAND", reasons[pbf_hit] + ";PERMANENT_BASIC_FARMLAND")
     out["LOCK_RSN"] = reasons
-    is_forest = out["DLBM"].str.startswith(FOREST_PREFIXES).to_numpy()
-    is_farmland = out["DLBM"].str.startswith(FARMLAND_PREFIXES).to_numpy()
+    code_categories = out["DLBM"].map(classify_land_use_code)
+    is_forest = code_categories.eq("forest").to_numpy()
+    is_farmland = code_categories.eq("farmland").to_numpy()
     review = (pbf_hit & is_forest) | (eco_hit & is_farmland)
     out["REVIEW_REQ"] = review.astype(np.int8)
     out["REVIEW_RSN"] = np.where(
@@ -1233,6 +1238,7 @@ def fuse_county(
 
     with diag.stage("standardise_dltb_and_infer_county"):
         dltb = standardise_dltb(dltb_raw)
+        land_use_code_report = dict(dltb.attrs["land_use_codes"])
         inferred_county_name, county_name_source = _infer_county_name(
             dltb, sources["dltb"]
         )
@@ -1254,6 +1260,7 @@ def fuse_county(
             county_name_source=county_name_source,
             feature_count=int(len(dltb)),
             category_counts=category_counts,
+            land_use_codes=land_use_code_report,
             township_prefix_count=int(len(township_prefix_counts)),
             township_prefix_parcel_counts={
                 str(code): int(count) for code, count in township_prefix_counts.items()
@@ -1418,6 +1425,7 @@ def fuse_county(
             "purpose": "Compare customer authority slope grade with the DEM-derived grade and expose mismatches for review.",
         },
         "constraints": constraint_report,
+        "land_use_codes": land_use_code_report,
         "policy": {
             "eco_redline": "Any material overlap is locked against both automated conversion directions.",
             "permanent_basic_farmland": "Any material overlap is locked against both automated conversion directions by default; forest overlap requires manual data/approval review.",

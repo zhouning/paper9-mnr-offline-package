@@ -1,6 +1,6 @@
-# Paper9v2.2.2 双模式镜像使用说明
+# Paper9v2.2.3 双模式镜像使用说明
 
-当前默认镜像为 `paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64`，默认配置为
+当前默认镜像为 `paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64`，默认配置为
 `configs/paper9v22_authority_constraints.yml`。批处理和 Notebook 共用同一镜像、同一融合输入
 和同一审计口径。
 

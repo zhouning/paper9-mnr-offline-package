@@ -1,6 +1,6 @@
 # 15 当前工作进度接续说明
 
-更新时间：2026-07-23
+更新时间：2026-07-27
 
 本文用于关闭当前窗口后，在后续窗口继续处理 Paper9 自然资源部离线部署包。本文只记录
 工程状态、验证证据和后续动作，不包含客户真实数据。
@@ -20,15 +20,14 @@
 ## 当前镜像和使用方式
 
 - 当前 Paper9v2 默认配置：`configs/paper9v22_authority_constraints.yml`
-- 当前客户 deepin x86_64 现场默认镜像：`paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64`
+- 当前客户 deepin x86_64 现场默认镜像：`paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64`
 - 当前 x86_64 独立镜像 tar：
-  `dist/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar`
+  `dist/paper9-mnr-offline-paper9v2-2.2.3-legacy-linux-amd64.tar`
 - 当前校验文件：
-  `dist/SHA256SUMS-paper9v2-2.2.2-legacy-amd64.txt`
-- 当前 legacy-amd64 交付镜像元数据：包版本 `0.3.2`，算法 `paper9v2 2.2.2`，
-  CPU 兼容性 `legacy-x86_64-without-x86-64-v2`，revision `a2d0a65-dirty`，
-  镜像 ID `sha256:71b2ebed3bc2753a409dc1f48298dff2b0933120a4b121799fdb0ade397b8a7f`，
-  Docker 逻辑大小 `923205101` 字节。
+  `dist/SHA256SUMS-paper9v2-2.2.3-legacy-amd64.txt`
+- 当前 legacy-amd64 交付镜像元数据：包版本 `0.3.3`，算法 `paper9v2 2.2.3`，
+  CPU 兼容性 `legacy-x86_64-without-x86-64-v2`。镜像 ID、文件字节数和 SHA-256 以
+  `dist/MANIFEST-paper9v2-2.2.3-legacy-amd64.json` 为准。
 - Windows Intel 机器曾从 GitHub 源码重新构建历史 `paper9v2-2.1.0-legacy-amd64` 并完成测试，
   其隔离配置已提交为 `configs/windows_dongxing_real_docker_e2e.yml`
 - 现场运行脚本：`deploy/container-runtime/run-paper9-container.sh`
@@ -64,6 +63,10 @@ v2.2.2 在 v2.2.1 验证基础上增加 44 个包内乡镇参考面、PDT 非驱
 融合阶段、JSONL 事件和失败 traceback 诊断。最终镜像内 `73 passed`，本次新增和修改文件
 通过 Ruff，OpenFileGDB 驱动为 `rw`，ArcPy 不存在，legacy CPU 兼容检查、默认配置检查和
 完整流程 dry-run 均通过。
+
+v2.2.3 修正真实权威数据暴露的两个问题：统一支持 `0101/0102/0103`、`0301-0307` 等现行
+四位地类编码，并在混码或识别不到耕地/林地时失败；融合后在宿主机生成
+`DATA_ROOT/FUSION_OUTPUTS.txt`，逐一列出六个融合文件的绝对路径、字节数和 SHA-256。
 
 三个 GLO-30 瓦片的字节数与 S3 `Content-Length` 一致，MD5 与对象 `ETag` 一致，SHA-256、
 CRS、范围、分辨率及栅格可读性均已写入 `DEM_MANIFEST.json`。另在东兴区、璧山区范围内
@@ -168,7 +171,7 @@ Paper9v2.1 legacy-amd64 E2E 日志中出现的 warning 类型如下，目前均�
 ```bash
 cd /Users/zhouning/paper9-mnr-offline-package
 git status --short
-docker image inspect paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64
+docker image inspect paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64
 ls -lh outputs/paper9v21_legacy_docker_e2e_20260701-2038/outputs/plan_paper9v2_no_net_loss
 python3 -m json.tool outputs/paper9v21_legacy_docker_e2e_20260701-2038/outputs/logs/run_full_pipeline-20260701-123848.json
 ```

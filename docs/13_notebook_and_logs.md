@@ -17,7 +17,7 @@ Notebook 不是正式运行的唯一入口。正式生产运行仍建议使用
 runtime = docker
 arch = amd64
 data_root = /data/paper9
-image_ref = paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64
+image_ref = paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64
 config = configs/paper9v22_authority_constraints.yml
 ```
 
@@ -29,7 +29,7 @@ config = configs/paper9v22_authority_constraints.yml
 ./bin/run-paper9-container.sh notebook \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 \
   --config configs/paper9v22_authority_constraints.yml \
   --data-root /data/paper9 \
   --notebook-port 8888 \

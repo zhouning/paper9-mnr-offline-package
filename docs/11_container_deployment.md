@@ -1,4 +1,4 @@
-# Paper9v2.2.2 容器构建与离线交付
+# Paper9v2.2.3 容器构建与离线交付
 
 ## 目标
 
@@ -6,7 +6,7 @@
 因此正式镜像使用兼容旧 CPU 的 `legacy-amd64` 依赖约束：
 
 ```text
-paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64
+paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64
 ```
 
 镜像包含 Python、GDAL/OpenFileGDB、GeoPandas、Rasterio、Paper9 代码、配置、测试和
@@ -21,13 +21,13 @@ Copernicus DEM GLO-30 瓦片随离线部署包交付，放在镜像外，便于�
 docker buildx build \
   --platform linux/amd64 \
   --build-arg LEGACY_X86_64=1 \
-  --build-arg PACKAGE_VERSION=0.3.2 \
+  --build-arg PACKAGE_VERSION=0.3.3 \
   --build-arg ALGORITHM_NAME=paper9v2 \
-  --build-arg ALGORITHM_VERSION=2.2.2 \
+  --build-arg ALGORITHM_VERSION=2.2.3 \
   --build-arg GIT_COMMIT="$(git rev-parse --short HEAD)-dirty" \
   --build-arg BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   --load \
-  -t paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 .
+  -t paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 .
 ```
 
 如本机已有经过验证的上一补丁镜像，且 `pyproject.toml` 与约束文件确认没有新增或升级第三方
@@ -36,13 +36,13 @@ docker buildx build \
 ```bash
 docker buildx build \
   --platform linux/amd64 \
-  --build-arg BASE_IMAGE=paper9-mnr-offline:paper9v2-2.2.1-legacy-amd64 \
+  --build-arg BASE_IMAGE=paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
   --build-arg REUSE_INSTALLED_DEPS=1 \
   --build-arg LEGACY_X86_64=1 \
-  --build-arg PACKAGE_VERSION=0.3.2 \
-  --build-arg ALGORITHM_VERSION=2.2.2 \
+  --build-arg PACKAGE_VERSION=0.3.3 \
+  --build-arg ALGORITHM_VERSION=2.2.3 \
   --load \
-  -t paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 .
+  -t paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 .
 ```
 
 该路径仍会重新复制源码、配置、测试、文档和参考数据，并在镜像构建阶段执行环境检查与
@@ -55,19 +55,19 @@ legacy CPU 检查；只有依赖安装层复用。若依赖约束发生变化，
 
 ```bash
 docker run --rm --platform linux/amd64 --network none \
-  paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+  paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 \
   python -m pytest tests -q
 
 docker run --rm --platform linux/amd64 --network none \
-  paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+  paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 \
   python scripts/check_legacy_cpu_compat.py --require-legacy-amd64
 
 docker run --rm --platform linux/amd64 --network none \
-  paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+  paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 \
   python -c "import pyogrio; print(pyogrio.list_drivers()['OpenFileGDB'])"
 
 docker run --rm --platform linux/amd64 --network none \
-  paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+  paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 \
   python -c "import importlib.util; assert importlib.util.find_spec('arcpy') is None"
 ```
 
@@ -77,11 +77,11 @@ OpenFileGDB 驱动应至少包含 `r`；当前构建预期为 `rw`。legacy 检�
 ## 导出镜像
 
 ```bash
-docker save paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
-  -o dist/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar
+docker save paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 \
+  -o dist/paper9-mnr-offline-paper9v2-2.2.3-legacy-linux-amd64.tar
 ```
 
-不要覆盖 `2.2.0` 的 tar、manifest 或校验文件。
+不要覆盖 `2.2.2` 的 tar、manifest 或校验文件。
 
 ## 生成轻量交付包
 
@@ -90,13 +90,13 @@ DEM 目录必须包含三个 `.tif` 和 `DEM_MANIFEST.json`。打包脚本缺少
 ```bash
 ./deploy/container-runtime/package-lightweight-container-bundle.sh \
   --arch amd64 \
-  --image-tar dist/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar \
-  --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+  --image-tar dist/paper9-mnr-offline-paper9v2-2.2.3-legacy-linux-amd64.tar \
+  --image-ref paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 \
   --dem-dir dist/dem/copernicus_glo30 \
-  --package-version 0.3.2 \
+  --package-version 0.3.3 \
   --algorithm-name paper9v2 \
-  --algorithm-version 2.2.2 \
-  --out dist/paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64.tar.gz
+  --algorithm-version 2.2.3 \
+  --out dist/paper9-mnr-offline-container-paper9v2-2.2.3-legacy-amd64.tar.gz
 ```
 
 如果客户机器还没有 Docker/Podman，使用
@@ -135,4 +135,4 @@ DEM 目录必须包含三个 `.tif` 和 `DEM_MANIFEST.json`。打包脚本缺少
 
 源码保留 `arm64` 标签选择逻辑，但本次不交付 ARM 工件。只有在 ARM 服务器上重新构建、
 完成同等测试并制作独立校验清单后，才能发布
-`paper9-mnr-offline:paper9v2-2.2.2-arm64`。
+`paper9-mnr-offline:paper9v2-2.2.3-arm64`。

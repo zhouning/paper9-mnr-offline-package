@@ -1,6 +1,6 @@
 algorithm:
   name: paper9v2
-  version: 2.2.2
+  version: 2.2.3
 
 project:
   name: paper9v22-authority-constraints

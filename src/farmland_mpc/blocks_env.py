@@ -137,14 +137,12 @@ def _attach_bsm(env, dltb_path, township_codes):
     BSM array aligns with env's parcel indices 0..n_parcels-1.
     """
     import geopandas as gpd
-    import numpy as np
+    from farmland_mpc.landuse import classify_land_use
 
     where = " OR ".join([f"QSDWDM LIKE '{c}%'" for c in township_codes])
     gdf = gpd.read_file(dltb_path, where=where)
-    # CountyLevelEnv's _classify_type uses these same prefixes
-    farm = gdf['DLBM'].astype(str).str.startswith(('011', '012', '013'))
-    forest = gdf['DLBM'].astype(str).str.startswith(('031', '032', '033'))
-    keep = farm | forest
+    categories = gdf['DLBM'].map(classify_land_use)
+    keep = categories.isin({'farmland', 'forest'})
     gdf_swap = gdf[keep].reset_index(drop=True)
     if len(gdf_swap) != env.n_parcels:
         raise RuntimeError(

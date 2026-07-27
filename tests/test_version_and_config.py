@@ -10,10 +10,10 @@ PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_version_constants_define_paper9v2_release():
-    assert PACKAGE_VERSION == "0.3.2"
+    assert PACKAGE_VERSION == "0.3.3"
     assert paper9_mnr.__version__ == PACKAGE_VERSION
     assert ALGORITHM_NAME == "paper9v2"
-    assert ALGORITHM_VERSION == "2.2.2"
+    assert ALGORITHM_VERSION == "2.2.3"
 
 
 def test_paper9v2_no_net_loss_config_validates_with_cultivated_area_floor_only():

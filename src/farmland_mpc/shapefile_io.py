@@ -2,10 +2,10 @@
 
 Writes an optimized DLTB feature class with these added fields:
 
-    OPT_DLBM   Text(3)   - optimized 3-digit land-use code
+    OPT_DLBM   Text(5)   - optimized land-use code
     OPT_DLMC   Text(40)  - optimized land-use Chinese name (looked up via DLMC dict)
     CHG_FLAG   Short     - 0=unchanged, 1=farm->forest, 2=forest->farm
-    ORIG_DLBM  Text(3)   - original DLBM (preserved for audit)
+    ORIG_DLBM  Text(5)   - original DLBM (preserved for audit)
 
 The original toolbox implementation used ``arcpy.management.AddField`` +
 ``arcpy.da.UpdateCursor``; this version uses geopandas dataframe column
@@ -22,12 +22,14 @@ from pathlib import Path
 import numpy as np
 import geopandas as gpd
 
-logger = logging.getLogger(__name__)
+from farmland_mpc.landuse import (
+    DEFAULT_FARM_DLBM,
+    DEFAULT_FOREST_DLBM,
+    LandUseCodeError,
+    analyse_land_use_codes,
+)
 
-# Default representative DLBM codes for the "after" state when a swap happens.
-# Users can override via Tool 4 UI parameters.
-DEFAULT_FARM_DLBM = "011"    # paddy / cultivated
-DEFAULT_FOREST_DLBM = "031"  # forest
+logger = logging.getLogger(__name__)
 
 # CountyLevelEnv land_use enum (mirrors county_env.FARMLAND/FOREST)
 ENV_FARMLAND = 1
@@ -100,6 +102,17 @@ def write_optimized_dltb(input_fc, output_fc, env,
     _say(f"[shp_out] Reading {input_fc} ...")
     gdf = gpd.read_file(input_fc)
     _validate_dltb_columns(gdf, ["BSM", "DLBM", "DLMC"])
+    input_code_report = analyse_land_use_codes(
+        gdf["DLBM"], require_farmland=True, require_forest=True
+    )
+    output_code_report = analyse_land_use_codes(
+        [farm_dlbm, forest_dlbm], require_farmland=True, require_forest=True
+    )
+    if input_code_report.scheme != output_code_report.scheme:
+        raise LandUseCodeError(
+            "Optimized DLBM output codes use a different scheme from the input: "
+            f"input={input_code_report.scheme}, output={output_code_report.scheme}."
+        )
 
     # DLBM -> DLMC lookup from the input's own rows (so OPT_DLMC follows
     # the user's Chinese-name conventions; varies subtly across regions).
@@ -181,6 +194,7 @@ def write_optimized_dltb(input_fc, output_fc, env,
         "n_farm_to_forest": n_farm_to_forest,
         "n_forest_to_farm": n_forest_to_farm,
         "n_unchanged": n_unchanged,
+        "land_use_code_scheme": input_code_report.scheme,
     }
 
 

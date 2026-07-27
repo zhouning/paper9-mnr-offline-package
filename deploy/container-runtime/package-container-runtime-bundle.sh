@@ -11,19 +11,19 @@ Usage:
 Options:
   --image-ref REF                 Container image reference recorded in MANIFEST.json.
   --dem-dir DIR                   Directory containing offline DEM tiles and DEM_MANIFEST.json.
-  --package-version VERSION       Package version. Default: 0.3.2.
+  --package-version VERSION       Package version. Default: 0.3.3.
   --algorithm-name NAME           Algorithm name. Default: paper9v2.
-  --algorithm-version VERSION     Algorithm version. Default: 2.2.2.
+  --algorithm-version VERSION     Algorithm version. Default: 2.2.3.
   --git-commit COMMIT             Git commit recorded in MANIFEST.json. Default: unknown.
 
 Example:
   ./deploy/container-runtime/package-container-runtime-bundle.sh \
     --arch amd64 \
-    --image-tar dist/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar \
-    --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+    --image-tar dist/paper9-mnr-offline-paper9v2-2.2.3-legacy-linux-amd64.tar \
+    --image-ref paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 \
     --runtime-packages-dir /tmp/docker-rpms/rocky9-amd64 \
     --dem-dir dist/dem/copernicus_glo30 \
-    --out dist/paper9-mnr-container-runtime-paper9v2-2.2.2-legacy-amd64.tar.gz
+    --out dist/paper9-mnr-container-runtime-paper9v2-2.2.3-legacy-amd64.tar.gz
 USAGE
 }
 
@@ -37,9 +37,9 @@ image_tar=""
 runtime_packages_dir=""
 dem_dir=""
 out=""
-package_version="0.3.2"
+package_version="0.3.3"
 algorithm_name="paper9v2"
-algorithm_version="2.2.2"
+algorithm_version="2.2.3"
 git_commit="unknown"
 image_ref=""
 
@@ -150,7 +150,9 @@ cp "$image_tar" "$staging/images/paper9-mnr-offline-linux-${arch}.tar"
 cp -R "$runtime_packages_dir"/. "$staging/runtime-packages/"
 cp "$repo_root/deploy/container-runtime/install-container-runtime.sh" "$staging/bin/"
 cp "$repo_root/deploy/container-runtime/run-paper9-container.sh" "$staging/bin/"
-cp "$repo_root/docs/12_container_runtime_airgap.md" "$staging/docs/"
+for customer_doc in "$repo_root"/docs/[0-9][0-9]_*.md; do
+  cp "$customer_doc" "$staging/docs/"
+done
 cp -R "$repo_root/configs"/. "$staging/configs/"
 cp -R "$dem_dir"/. "$staging/dem/copernicus_glo30/"
 cp -R "$repo_root/reference/admin"/. "$staging/reference/admin/"
@@ -194,9 +196,11 @@ Paper9 MNR container-runtime offline bundle (${arch})
 3. Fuse the four customer FileGDB directories. These are the only customer data parameters; Docker, architecture, image, DEM, township reference, and data root are automatic:
    ./bin/run-paper9-container.sh fuse --dltb-gdb /path/to/dltb.gdb --pdt-gdb /path/to/pdt.gdb --eco-redline-gdb /path/to/stbhhx.gdb --permanent-basic-farmland-gdb /path/to/yjjbntbhtb.gdb
 
-4. Copy the four exact check/dry-run/run/audit commands printed after fusion.
+4. Open DATA_ROOT/FUSION_OUTPUTS.txt. It lists the absolute host path, size, and SHA-256 of every fusion output.
 
-5. When support analysis is required, copy the complete directory:
+5. Copy the four exact check/dry-run/run/audit commands printed after fusion.
+
+6. When support analysis is required, copy the complete directory:
    DATA_ROOT/outputs/logs/
 README
 

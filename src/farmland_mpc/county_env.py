@@ -29,6 +29,7 @@ import numpy as np
 import geopandas as gpd
 import gymnasium as gym
 from gymnasium import spaces
+from farmland_mpc.landuse import analyse_land_use_codes, classify_land_use
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -41,9 +42,6 @@ PROJ_CRS = 'EPSG:32648'
 
 FARMLAND = 1
 FOREST = 2
-
-FARMLAND_PREFIXES = ('011', '012', '013')
-FOREST_PREFIXES = ('031', '032', '033')
 
 # Per-block feature count
 K_BLOCK = 17
@@ -65,9 +63,10 @@ TOWNSHIP_CODES = sorted(ALL_TOWNSHIPS.keys())
 
 
 def _classify_type(dlbm):
-    if dlbm.startswith(FARMLAND_PREFIXES):
+    category = classify_land_use(dlbm)
+    if category == 'farmland':
         return FARMLAND
-    elif dlbm.startswith(FOREST_PREFIXES):
+    elif category == 'forest':
         return FOREST
     return 0
 
@@ -174,6 +173,9 @@ class CountyLevelEnv(gym.Env):
             [f"QSDWDM LIKE '{code}%'" for code in TOWNSHIP_CODES]
         )
         gdf = gpd.read_file(DLTB_PATH, where=where_clause)
+        self.land_use_code_report = analyse_land_use_codes(
+            gdf['DLBM'], require_farmland=True, require_forest=True
+        ).as_dict()
         gdf['type_code'] = gdf['DLBM'].apply(_classify_type)
 
         # Filter to swappable (farmland + forest)

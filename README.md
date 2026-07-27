@@ -4,7 +4,7 @@ This package is a standalone, ArcGIS-free engineering bundle for running
 Paper9/Paper9v2 and recalibrating it on Ministry of Natural Resources
 authoritative parcel data inside an intranet.
 
-The Paper9v2.2.2 customer workflow accepts four independent FileGDB directories
+The Paper9v2.2.3 customer workflow accepts four independent FileGDB directories
 for each county:
 
 1. 2025 DLTB parcels.
@@ -32,6 +32,9 @@ classes. It does not set `slope_mean`, exchange locks, or optimizer behavior.
 All container actions run with networking disabled. FileGDB, DEM, and township
 reference mounts are read-only; no ArcGIS component is used. Detailed host,
 fusion, stage, and failure diagnostics are written to `DATA_ROOT/outputs/logs/`.
+After fusion, `DATA_ROOT/FUSION_OUTPUTS.txt` lists every host-side fusion file
+with its absolute path, byte size, and SHA-256. Production DLBM classification
+uses GB/T 21010-2017 / Third National Land Survey four-digit base codes.
 
 Reward changes are treated as model-label changes. For business calibration,
 rerun `sample` and `train` before `plan`; do not only rerun planning with an old
@@ -74,11 +77,11 @@ Current MNR Docker target profile:
 - Customer hosts reported: `deepin server 16`, `x86_64`.
 - 2026-07-01 onsite logs show the target x86_64 CPU flags are missing `sse4_1`
   and `popcnt`, so the current amd64 default is the `legacy-amd64` package:
-  `dist/paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64.tar.gz`.
+  `dist/paper9-mnr-offline-container-paper9v2-2.2.3-legacy-amd64.tar.gz`.
 - Use the immutable Paper9v2.2 legacy image reference:
-  `paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64`.
+  `paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64`.
 - The standalone legacy amd64 image tar is:
-  `dist/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar`.
+  `dist/paper9-mnr-offline-paper9v2-2.2.3-legacy-linux-amd64.tar`.
 - Container runtime now allowed by customer policy; use Docker as the default runtime.
 - A separate `linux/arm64` package can be built for other ARM servers, but it is not
   part of the current MNR x86_64 delivery.
@@ -92,13 +95,14 @@ Paper9v2.0 dual-data report remains available at
 `docs/reports/paper9v2_docker_bishan_dongxing_report_20260627/REPORT.md` as historical
 baseline evidence.
 
-Paper9v2.2.2 adds four-FileGDB ArcPy-free fusion, bundled-DEM parcel slope calculation,
+Paper9v2.2.3 adds four-FileGDB ArcPy-free fusion, bundled-DEM parcel slope calculation,
 a bundled Dongxing/Bishan township reference, detailed offline diagnostics, and
 bidirectional exchange locking for ecological redlines and permanent basic
 farmland. The source and container release are verified independently from
 the historical v2.1 E2E result. A formal Dongxing/Bishan v2.2 E2E run still
 requires the customer FileGDBs; the DEM is already part of the delivery. See
-`docs/18_authoritative_filegdb_fusion.md` and `docs/19_paper9v22_release.md`.
+`docs/18_authoritative_filegdb_fusion.md`, `docs/19_paper9v22_release.md`, and
+`docs/20_paper9v223_release.md`.
 
 For a brand-new Linux machine with no Python/conda environment and no network,
 this repository alone is not copy-and-run. Build and ship a Linux runtime bundle
@@ -119,10 +123,10 @@ docker buildx build `
   --build-arg HTTPS_PROXY=http://host.docker.internal:7897 `
   --build-arg NO_PROXY=localhost,127.0.0.1,host.docker.internal `
   --load `
-  -t paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 .
+  -t paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 .
 
 docker run --rm --platform linux/amd64 `
-  paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 `
+  paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 `
   python scripts/check_legacy_cpu_compat.py --require-legacy-amd64
 ```
 

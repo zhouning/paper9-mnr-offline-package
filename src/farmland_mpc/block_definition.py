@@ -25,6 +25,8 @@ from scipy.sparse import lil_matrix
 from sklearn.cluster import AgglomerativeClustering
 from shapely.ops import unary_union
 import warnings
+from farmland_mpc.landuse import classify_land_use
+
 warnings.filterwarnings('ignore')
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -36,22 +38,9 @@ PROJ_CRS = 'EPSG:32648'  # UTM Zone 48N (override for other regions)
 
 TOWNSHIPS = {}  # caller fills in {code: label}
 
-# DLBM code prefixes
-FARMLAND_PREFIXES = ('011', '012', '013')  # paddy, irrigated, dry land
-FOREST_PREFIXES = ('031', '032', '033')    # forest, shrub, other woodland
-BARRIER_PREFIXES = ('10', '11', '20')       # roads, water, construction
-
-
 def classify_parcel(dlbm):
     """Classify parcel as farmland, forest, barrier, or other."""
-    if dlbm.startswith(FARMLAND_PREFIXES):
-        return 'farmland'
-    elif dlbm.startswith(FOREST_PREFIXES):
-        return 'forest'
-    elif dlbm[:2] in ('10', '11', '20'):
-        return 'barrier'
-    else:
-        return 'other'
+    return classify_land_use(dlbm)
 
 
 def load_township(township_code):

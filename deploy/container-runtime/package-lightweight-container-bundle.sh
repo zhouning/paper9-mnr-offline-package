@@ -11,19 +11,19 @@ Usage:
 Options:
   --image-ref REF                 Container image reference recorded in MANIFEST.json.
   --dem-dir DIR                   Directory containing offline DEM tiles and DEM_MANIFEST.json.
-  --package-version VERSION       Package version. Default: 0.3.2.
+  --package-version VERSION       Package version. Default: 0.3.3.
   --algorithm-name NAME           Algorithm name. Default: paper9v2.
-  --algorithm-version VERSION     Algorithm version. Default: 2.2.2.
+  --algorithm-version VERSION     Algorithm version. Default: 2.2.3.
   --cpu-compatibility VALUE       CPU compatibility note. Default: legacy-x86_64-without-x86-64-v2.
   --git-commit COMMIT             Git commit recorded in MANIFEST.json. Default: unknown.
 
 Example:
   ./deploy/container-runtime/package-lightweight-container-bundle.sh \
     --arch amd64 \
-    --image-tar dist/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar \
-    --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+    --image-tar dist/paper9-mnr-offline-paper9v2-2.2.3-legacy-linux-amd64.tar \
+    --image-ref paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 \
     --dem-dir dist/dem/copernicus_glo30 \
-    --out dist/paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64.tar.gz
+    --out dist/paper9-mnr-offline-container-paper9v2-2.2.3-legacy-amd64.tar.gz
 USAGE
 }
 
@@ -36,9 +36,9 @@ arch=""
 image_tar=""
 dem_dir=""
 out=""
-package_version="0.3.2"
+package_version="0.3.3"
 algorithm_name="paper9v2"
-algorithm_version="2.2.2"
+algorithm_version="2.2.3"
 cpu_compatibility="legacy-x86_64-without-x86-64-v2"
 git_commit="unknown"
 image_ref=""
@@ -140,7 +140,9 @@ image_tar_name="paper9-mnr-offline-${algorithm_name}-${algorithm_version}-legacy
 cp "$image_tar" "$staging/images/$image_tar_name"
 cp "$repo_root/deploy/container-runtime/run-paper9-container.sh" "$staging/bin/"
 cp -R "$repo_root/configs"/. "$staging/configs/"
-cp -R "$repo_root/docs"/. "$staging/docs/"
+for customer_doc in "$repo_root"/docs/[0-9][0-9]_*.md; do
+  cp "$customer_doc" "$staging/docs/"
+done
 cp -R "$repo_root/notebooks"/. "$staging/notebooks/"
 cp "$repo_root/README.md" "$staging/README.md"
 cp -R "$dem_dir"/. "$staging/dem/copernicus_glo30/"
@@ -201,8 +203,9 @@ Fuse one county. These four FileGDB directory paths are the only customer data i
 \`\`\`
 
 The wrapper selects Docker, amd64, the release image, the bundled DEM, the
-township reference, and an isolated data root automatically. It prints the exact
-\`check\`, \`dry-run\`, \`run\`, and \`audit\` commands after fusion.
+township reference, and an isolated data root automatically. It prints the host
+output directory and \`FUSION_OUTPUTS.txt\` manifest, then the exact \`check\`,
+\`dry-run\`, \`run\`, and \`audit\` commands after fusion.
 
 Detailed host, fusion, pipeline, and failure diagnostics are written under
 \`DATA_ROOT/outputs/logs/\`. Copy that complete directory out of the

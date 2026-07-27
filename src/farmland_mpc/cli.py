@@ -224,8 +224,8 @@ def plan(
     proj_crs: Optional[str] = typer.Option(None, "--crs"),
     output_fc: Optional[Path] = typer.Option(None, "--output-shp",
         help="Where to write the optimised DLTB shapefile (with OPT_DLBM, CHG_FLAG, ORIG_DLBM)."),
-    farm_dlbm: str = typer.Option("011", "--farm-dlbm"),
-    forest_dlbm: str = typer.Option("031", "--forest-dlbm"),
+    farm_dlbm: str = typer.Option("0101", "--farm-dlbm"),
+    forest_dlbm: str = typer.Option("0301", "--forest-dlbm"),
     baimu_area_penalty: Optional[float] = typer.Option(None, "--baimu-area-penalty",
         help="Override env baimu_area_penalty (default 2000.0; paper Eq.1 implies 0)."),
     cultivated_area_floor_delta_ha: Optional[float] = typer.Option(

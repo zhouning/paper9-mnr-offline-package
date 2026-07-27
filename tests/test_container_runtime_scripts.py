@@ -37,7 +37,7 @@ def test_docs_describe_paper9v22_legacy_amd64_release():
     ]
     text = "\n".join(path.read_text(encoding="utf-8") for path in paths)
 
-    assert "paper9v2-2.2.2-legacy-amd64" in text
+    assert "paper9v2-2.2.3-legacy-amd64" in text
     assert "legacy-amd64" in text
     assert "sse4_1" in text
     assert "popcnt" in text
@@ -59,14 +59,14 @@ def test_container_runtime_wrapper_supports_full_image_ref():
     assert 'image_ref="${2:-}"' in script
     assert 'default_image_ref "$image" "$arch"' in script
     assert 'PAPER9_IMAGE_REF="$tag"' in script
-    assert "paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64" in script
+    assert "paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64" in script
 
 
 def test_container_runtime_wrapper_defaults_amd64_to_legacy_release():
     script = (PACKAGE_ROOT / "deploy/container-runtime/run-paper9-container.sh").read_text(encoding="utf-8")
 
-    assert 'paper9v2-2.2.2-legacy-amd64' in script
-    assert 'paper9v2-2.2.2-arm64' in script
+    assert 'paper9v2-2.2.3-legacy-amd64' in script
+    assert 'paper9v2-2.2.3-arm64' in script
     assert 'paper9v2-2.0.0-$arch' not in script
 
 
@@ -91,9 +91,9 @@ def test_container_runtime_bundle_writes_manifest_and_checksums():
     assert "--algorithm-name NAME" in script
     assert "--algorithm-version VERSION" in script
     assert "--git-commit COMMIT" in script
-    assert 'package_version="0.3.2"' in script
+    assert 'package_version="0.3.3"' in script
     assert 'algorithm_name="paper9v2"' in script
-    assert 'algorithm_version="2.2.2"' in script
+    assert 'algorithm_version="2.2.3"' in script
     assert 'git_commit="unknown"' in script
     assert 'amd64) image_ref="paper9-mnr-offline:${algorithm_name}-${algorithm_version}-legacy-amd64"' in script
     assert 'arm64) image_ref="paper9-mnr-offline:${algorithm_name}-${algorithm_version}-arm64"' in script
@@ -163,6 +163,13 @@ def test_container_runtime_wrapper_fuses_four_read_only_gdbs_with_bundled_dem():
     assert 'Copernicus_DSM_COG_10_N29_00_E105_00_DEM.tif' in script
     assert 'Copernicus_DSM_COG_10_N29_00_E106_00_DEM.tif' in script
     assert 'dltb_path_key="$(printf \'%s\' "$dltb_gdb" | cksum' in script
+    assert 'county_code="$(printf \'%s/%s\' "$dltb_parent" "$dltb_label"' in script
+    assert 'data_root="$PWD/paper9-data/${county_code}-${dltb_path_key}"' in script
+    assert 'FUSION_OUTPUTS.txt' in script
+    assert 'fusion_output_files=(' in script
+    assert 'Fusion output directory: $input_dir' in script
+    assert 'sha256=' in script
+    assert 'size_bytes=' in script
     assert '${dltb_gdb}:/app/authority/dltb.gdb:ro${volume_suffix}' in script
     assert '${pdt_gdb}:/app/authority/pdt.gdb:ro${volume_suffix}' in script
     assert '${eco_redline_gdb}:/app/authority/eco_redline.gdb:ro${volume_suffix}' in script
@@ -243,14 +250,16 @@ def test_lightweight_bundle_contains_offline_dem_and_manifest(tmp_path):
         names = set(archive.getnames())
         for tile_name in dem_tile_names:
             assert f"{root}/dem/copernicus_glo30/{tile_name}" in names
+        assert not any("research_proposal" in name for name in names)
+        assert not any("publication_validation_plan" in name for name in names)
         assert f"{root}/dem/copernicus_glo30/DEM_MANIFEST.json" in names
         assert f"{root}/reference/admin/xiangzhen_dongxing_bishan.gpkg" in names
         assert f"{root}/reference/admin/MANIFEST.json" in names
         manifest_file = archive.extractfile(f"{root}/MANIFEST.json")
         assert manifest_file is not None
         manifest = json.load(manifest_file)
-    assert manifest["package_version"] == "0.3.2"
-    assert manifest["algorithm_version"] == "2.2.2"
+    assert manifest["package_version"] == "0.3.3"
+    assert manifest["algorithm_version"] == "2.2.3"
     assert manifest["offline_dem"] == {
         "directory": "dem/copernicus_glo30",
         "manifest": "dem/copernicus_glo30/DEM_MANIFEST.json",

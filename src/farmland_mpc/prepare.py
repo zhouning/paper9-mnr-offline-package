@@ -985,7 +985,8 @@ def _phase_b_blocks(
     if info["total_blocks"] == 0:
         raise RuntimeError(
             "Phase B produced 0 blocks across all townships. Check that DLBM "
-            "values include both farmland (011/012/013) and forest (031/032/033) "
+            "values include both current farmland (0101/0102/0103) and forest "
+            "(0301-0307) codes, or one consistent legacy three-digit test scheme, "
             "codes, and that min_parcels / min_area_ha are not too restrictive."
         )
     return info

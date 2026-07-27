@@ -42,9 +42,9 @@ Options:
 
 Examples:
   ./run-paper9-container.sh fuse --dltb-gdb /authority/dltb.gdb --pdt-gdb /authority/pdt.gdb --eco-redline-gdb /authority/stbhhx.gdb --permanent-basic-farmland-gdb /authority/yjjbnt.gdb
-  ./run-paper9-container.sh check --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 --image-tar images/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar
-  ./run-paper9-container.sh dry-run --runtime podman --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 --data-root /data/paper9
-  ./run-paper9-container.sh run --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 --config configs/paper9v22_authority_constraints.yml
+  ./run-paper9-container.sh check --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 --image-tar images/paper9-mnr-offline-paper9v2-2.2.3-legacy-linux-amd64.tar
+  ./run-paper9-container.sh dry-run --runtime podman --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 --data-root /data/paper9
+  ./run-paper9-container.sh run --runtime docker --arch amd64 --image-ref paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 --config configs/paper9v22_authority_constraints.yml
 USAGE
 }
 
@@ -75,8 +75,8 @@ default_image_ref() {
   local repo="$1"
   local image_arch="$2"
   case "$image_arch" in
-    amd64) echo "${repo}:paper9v2-2.2.2-legacy-amd64" ;;
-    arm64) echo "${repo}:paper9v2-2.2.2-arm64" ;;
+    amd64) echo "${repo}:paper9v2-2.2.3-legacy-amd64" ;;
+    arm64) echo "${repo}:paper9v2-2.2.3-arm64" ;;
     *) die "unsupported image architecture: $image_arch" ;;
   esac
 }
@@ -206,7 +206,13 @@ if [ "$action" = "fuse" ] && [ -z "$data_root" ]; then
     dltb_parent="$(basename "$(dirname "$dltb_gdb")")"
     dltb_path_key="$(printf '%s' "$dltb_gdb" | cksum | awk '{print $1}')"
     county_key="$(printf '%s-%s-%s' "$dltb_parent" "$dltb_label" "$dltb_path_key" | tr -cs '[:alnum:]._' '-')"
-    data_root="$PWD/paper9-data/${county_key%-}"
+    county_code="$(printf '%s/%s' "$dltb_parent" "$dltb_label" | sed -n 's/.*\([0-9]\{6\}\).*/\1/p')"
+    if [ -n "$county_code" ]; then
+      data_root="$PWD/paper9-data/${county_code}-${dltb_path_key}"
+    else
+      county_key="${county_key#-}"
+      data_root="$PWD/paper9-data/${county_key%-}"
+    fi
   else
     data_root="$PWD/paper9-data/unresolved-fuse"
   fi
@@ -215,7 +221,11 @@ data_root="${data_root:-/data/paper9}"
 input_dir="${input_dir:-$data_root/input}"
 working_dir="${working_dir:-$data_root/working}"
 outputs_dir="${outputs_dir:-$data_root/outputs}"
-mkdir -p "$input_dir" "$working_dir" "$outputs_dir" "$outputs_dir/logs"
+mkdir -p "$data_root" "$input_dir" "$working_dir" "$outputs_dir" "$outputs_dir/logs"
+data_root="$(cd "$data_root" && pwd -P)"
+input_dir="$(cd "$input_dir" && pwd -P)"
+working_dir="$(cd "$working_dir" && pwd -P)"
+outputs_dir="$(cd "$outputs_dir" && pwd -P)"
 
 host_run_id="${PAPER9_WRAPPER_RUN_ID:-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
 host_log="${PAPER9_WRAPPER_LOG_PATH:-$outputs_dir/logs/container-wrapper-${host_run_id}.log}"
@@ -345,7 +355,49 @@ case "$action" in
       --admin-reference-layer admin_reference \
       --log-dir /app/outputs/logs \
       --run-id "$host_run_id"
-    echo "Fusion complete. Data root: $data_root"
+    fusion_output_files=(
+      "$input_dir/DLTB_with_authority_slope.gpkg"
+      "$input_dir/admin_units.gpkg"
+      "$input_dir/authority_constraints.gpkg"
+      "$input_dir/DEM_placeholder.tif"
+      "$input_dir/fusion_summary.csv"
+      "$input_dir/fusion_report.json"
+    )
+    for fusion_output in "${fusion_output_files[@]}"; do
+      [ -s "$fusion_output" ] || die "fusion output is missing or empty on the host: $fusion_output"
+    done
+
+    fusion_manifest="$data_root/FUSION_OUTPUTS.txt"
+    fusion_manifest_tmp="${fusion_manifest}.tmp-${host_run_id}"
+    {
+      echo "Paper9 authoritative fusion host outputs"
+      echo "run_id=$host_run_id"
+      echo "data_root=$data_root"
+      echo "output_directory=$input_dir"
+      echo "logs_directory=$outputs_dir/logs"
+      for fusion_output in "${fusion_output_files[@]}"; do
+        if command -v sha256sum >/dev/null 2>&1; then
+          fusion_sha256="$(sha256sum "$fusion_output" | awk '{print $1}')"
+        elif command -v shasum >/dev/null 2>&1; then
+          fusion_sha256="$(shasum -a 256 "$fusion_output" | awk '{print $1}')"
+        else
+          die "sha256sum or shasum is required to verify fusion outputs"
+        fi
+        if stat -c '%s' "$fusion_output" >/dev/null 2>&1; then
+          fusion_size="$(stat -c '%s' "$fusion_output")"
+        else
+          fusion_size="$(stat -f '%z' "$fusion_output")"
+        fi
+        echo "file=$fusion_output size_bytes=$fusion_size sha256=$fusion_sha256"
+      done
+    } > "$fusion_manifest_tmp"
+    mv "$fusion_manifest_tmp" "$fusion_manifest"
+
+    echo "Fusion complete. Host outputs were verified."
+    echo "Data root: $data_root"
+    echo "Fusion output directory: $input_dir"
+    echo "Fusion output manifest: $fusion_manifest"
+    cat "$fusion_manifest"
     echo "Detailed logs: $outputs_dir/logs"
     echo "Copy and run the following commands in order:"
     echo "$0 check --data-root '$data_root' --image-ref '$tag'"

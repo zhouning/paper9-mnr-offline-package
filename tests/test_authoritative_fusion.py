@@ -17,6 +17,7 @@ SRC = PACKAGE_ROOT / "src"
 sys.path.insert(0, str(SRC))
 
 from farmland_mpc.county_env import CountyLevelEnv, FARMLAND, FOREST  # noqa: E402
+from farmland_mpc.landuse import LandUseCodeError  # noqa: E402
 from farmland_mpc.shapefile_io import write_optimized_dltb  # noqa: E402
 from paper9_mnr.fusion import fuse_county, list_source_layers, main, slope_grade  # noqa: E402
 
@@ -36,7 +37,7 @@ def _build_source(path):
     dltb = gpd.GeoDataFrame(
         {
             "标识码": [101, 102, 103, 104],
-            "地类编码": ["011", "013", "031", "203"],
+            "地类编码": ["0101", "0103", "0301", "1104"],
             "地类名称": ["水田", "旱地", "乔木林地", "村庄"],
             "权属单位代码": ["511011001001"] * 4,
             "坐落单位名称": ["测试村"] * 4,
@@ -166,7 +167,7 @@ def test_fuse_county_builds_paper9_inputs_and_authority_locks(tmp_path):
         output_dir / "DLTB_with_authority_slope.gpkg", layer="dltb"
     )
     assert result["BSM"].tolist() == ["101", "102", "103", "104"]
-    assert result["DLBM"].tolist() == ["011", "013", "031", "203"]
+    assert result["DLBM"].tolist() == ["0101", "0103", "0301", "1104"]
     assert result["EXCH_LOCK"].tolist() == [1, 0, 1, 0]
     assert result["LOCK_C2F"].tolist() == [1, 0, 1, 0]
     assert result["LOCK_F2C"].tolist() == [1, 0, 1, 0]
@@ -177,6 +178,12 @@ def test_fuse_county_builds_paper9_inputs_and_authority_locks(tmp_path):
     assert report["arcgis_or_arcpy_used"] is False
     assert report["network_access_used"] is False
     assert report["constraints"]["exchange_locked_parcels"] == 2
+    assert report["land_use_codes"]["scheme"] == "gbt21010_2017_third_survey"
+    assert report["land_use_codes"]["category_counts"] == {
+        "barrier": 1,
+        "farmland": 2,
+        "forest": 1,
+    }
     assert (output_dir / "admin_units.gpkg").is_file()
     assert (output_dir / "DEM_placeholder.tif").is_file()
     assert set(pyogrio.list_layers(output_dir / "authority_constraints.gpkg")[:, 0]) == {
@@ -252,7 +259,7 @@ def test_openfilegdb_driver_can_be_enumerated(tmp_path):
         pytest.skip("GDAL OpenFileGDB driver is read-only in this environment")
     source = tmp_path / "authority.gdb"
     frame = gpd.GeoDataFrame(
-        {"BSM": [1], "DLBM": ["011"], "geometry": [box(0, 0, 1, 1)]},
+        {"BSM": [1], "DLBM": ["0101"], "geometry": [box(0, 0, 1, 1)]},
         crs="EPSG:3857",
     )
     frame.to_file(source, layer="DLTB", driver="OpenFileGDB", engine="pyogrio")
@@ -429,3 +436,25 @@ def test_output_writer_rejects_any_locked_land_use_change(tmp_path):
         write_optimized_dltb(
             tmp_path / "unused.gpkg", tmp_path / "unused.shp", env
         )
+
+
+def test_output_writer_rejects_current_defaults_for_legacy_input(tmp_path):
+    source = tmp_path / "legacy.gpkg"
+    gpd.GeoDataFrame(
+        {
+            "BSM": ["1", "2"],
+            "DLBM": ["011", "031"],
+            "DLMC": ["水田", "乔木林地"],
+            "geometry": [box(0, 0, 1, 1), box(1, 0, 2, 1)],
+        },
+        crs="EPSG:3857",
+    ).to_file(source, layer="dltb", driver="GPKG", engine="pyogrio")
+    env = SimpleNamespace(
+        _parcel_bsm=np.array(["1", "2"]),
+        initial_types=np.array([FARMLAND, FOREST], dtype=np.int8),
+        land_use=np.array([FARMLAND, FOREST], dtype=np.int8),
+        exchange_locked=np.array([False, False]),
+    )
+
+    with pytest.raises(LandUseCodeError, match="different scheme"):
+        write_optimized_dltb(source, tmp_path / "optimized.shp", env)

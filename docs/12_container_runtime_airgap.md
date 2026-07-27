@@ -19,9 +19,9 @@ CENTOS_MANTISBT_PROJECT_VERSION="7"
 因此，Paper9 镜像选择 `linux/amd64`。2026-07-01 现场 `lscpu` 输出显示目标机
 缺少 `sse4_1` 和 `popcnt`，不满足 x86-64-v2；必须使用 `legacy-amd64` 包。
 如果目标机器已经有 Docker，直接使用
-`paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64.tar.gz` 中的镜像和运行脚本即可。
-Paper9v2.2 正式镜像引用为 `paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64`；其他 ARM
-服务器如有需要，应另行构建并验证 `paper9-mnr-offline:paper9v2-2.2.2-arm64`。
+`paper9-mnr-offline-container-paper9v2-2.2.3-legacy-amd64.tar.gz` 中的镜像和运行脚本即可。
+Paper9v2.2 正式镜像引用为 `paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64`；其他 ARM
+服务器如有需要，应另行构建并验证 `paper9-mnr-offline:paper9v2-2.2.3-arm64`。
 
 前期截图中至少有一台机器能找到 `/usr/bin/docker`，另有机器未找到 Docker/Podman。现在客户已
 确认允许 Docker 后，如果现场机器仍没有 Docker，需要先准备 deepin server 16/CentOS 7
@@ -33,18 +33,18 @@ Ubuntu/openEuler/Kylin 等其他发行版的包直接混用到 deepin server 16�
 按目标 CPU 架构和 Linux 发行版分别准备交付包。例如：
 
 ```text
-paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64.tar.gz
-paper9-mnr-container-runtime-paper9v2-2.2.2-legacy-amd64.tar.gz
+paper9-mnr-offline-container-paper9v2-2.2.3-legacy-amd64.tar.gz
+paper9-mnr-container-runtime-paper9v2-2.2.3-legacy-amd64.tar.gz
 ```
 
-如果目标机器已经安装 Docker，使用 `paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64.tar.gz`
+如果目标机器已经安装 Docker，使用 `paper9-mnr-offline-container-paper9v2-2.2.3-legacy-amd64.tar.gz`
 这种轻量镜像包即可。若目标机器没有 Docker，则需要另行组装带 `runtime-packages/` 的
 container-runtime 整包。解压后建议包含：
 
 ```text
-paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64/
+paper9-mnr-offline-container-paper9v2-2.2.3-legacy-amd64/
   images/
-    paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar
+    paper9-mnr-offline-paper9v2-2.2.3-legacy-linux-amd64.tar
   runtime-packages/
     *.rpm 或 *.deb
   bin/
@@ -66,14 +66,14 @@ paper9-mnr-offline-container-paper9v2-2.2.2-legacy-amd64/
 ```bash
 deploy/container-runtime/package-container-runtime-bundle.sh \
   --arch amd64 \
-  --image-tar dist/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar \
+  --image-tar dist/paper9-mnr-offline-paper9v2-2.2.3-legacy-linux-amd64.tar \
   --runtime-packages-dir /path/to/docker-or-podman-packages \
   --dem-dir dist/dem/copernicus_glo30 \
-  --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
-  --package-version 0.3.2 \
-  --algorithm-version 2.2.2 \
+  --image-ref paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 \
+  --package-version 0.3.3 \
+  --algorithm-version 2.2.3 \
   --git-commit 86f57153771d789b7756f6f1d7c956b09278e9eb \
-  --out dist/paper9-mnr-container-runtime-paper9v2-2.2.2-legacy-amd64.tar.gz
+  --out dist/paper9-mnr-container-runtime-paper9v2-2.2.3-legacy-amd64.tar.gz
 ```
 
 ## 目标内网机器安装容器运行时
@@ -81,8 +81,8 @@ deploy/container-runtime/package-container-runtime-bundle.sh \
 解压交付包：
 
 ```bash
-tar -xzf paper9-mnr-container-runtime-paper9v2-2.2.2-legacy-amd64.tar.gz
-cd paper9-mnr-container-runtime-paper9v2-2.2.2-legacy-amd64
+tar -xzf paper9-mnr-container-runtime-paper9v2-2.2.3-legacy-amd64.tar.gz
+cd paper9-mnr-container-runtime-paper9v2-2.2.3-legacy-amd64
 ```
 
 安装 Docker：
@@ -110,7 +110,7 @@ sudo ./bin/install-container-runtime.sh \
 Docker、使用轻量部署包时，镜像文件名为：
 
 ```bash
-docker load -i images/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar
+docker load -i images/paper9-mnr-offline-paper9v2-2.2.3-legacy-linux-amd64.tar
 
 ./bin/run-paper9-container.sh fuse \
   --dltb-gdb /客户数据/东兴区/DLTB.gdb \
@@ -145,7 +145,7 @@ docker load -i images/paper9-mnr-offline-paper9v2-2.2.2-legacy-linux-amd64.tar
 `run` 会在 `prepare -> sample -> train -> plan` 后自动执行 `audit`，只有耕地面积不减少、
 平均坡度降低、连片度上升三项硬门禁全部通过才返回成功；单独的 `audit` 动作用于复核既有产物。
 wrapper 在 x86_64 机器上默认选择正式引用
-`paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64`，正常现场命令不需要填写 `--image-ref`。
+`paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64`，正常现场命令不需要填写 `--image-ref`。
 
 如需启动 Notebook 扩展模式：
 
@@ -153,7 +153,7 @@ wrapper 在 x86_64 机器上默认选择正式引用
 ./bin/run-paper9-container.sh notebook \
   --runtime docker \
   --arch amd64 \
-  --image-ref paper9-mnr-offline:paper9v2-2.2.2-legacy-amd64 \
+  --image-ref paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64 \
   --data-root /data/paper9/dongxing \
   --config configs/paper9v22_authority_constraints.yml \
   --notebook-port 8888 \
