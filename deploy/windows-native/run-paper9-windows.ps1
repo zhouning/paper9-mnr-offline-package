@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateSet("fuse", "all", "check", "check-config", "dry-run", "run", "audit")]
@@ -161,6 +161,8 @@ function Initialize-Paper9Runtime {
     $env:PATH = "$RuntimeRoot;$RuntimeRoot\Library\bin;$RuntimeRoot\Scripts;$env:PATH"
     $env:GDAL_DATA = Join-Path $RuntimeRoot "Library\share\gdal"
     $env:PROJ_LIB = Join-Path $RuntimeRoot "Library\share\proj"
+    $env:PYTHONIOENCODING = "utf-8"
+    $env:PYTHONUTF8 = "1"
 }
 
 function Initialize-DataDirectories {
@@ -245,7 +247,7 @@ function Invoke-Fusion {
     Invoke-Paper9Python -CommandArguments $FusionArguments
     Write-RuntimeConfig
 
-    Write-Host "Fusion completed for dataset=$Dataset: $InputDir"
+    Write-Host "Fusion completed for dataset=${Dataset}: $InputDir"
     Write-Warning "PDT, ecological redline, and permanent basic farmland were not evaluated. Results are for exploratory technical validation only."
     Write-Host "Next: .\bin\run-paper9-windows.ps1 run -DataRoot `"$DataRoot`""
 }

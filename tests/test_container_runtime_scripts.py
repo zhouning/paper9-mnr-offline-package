@@ -1,8 +1,9 @@
 import json
+import os
+import shutil
 import subprocess
 import tarfile
 from pathlib import Path
-
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = [
@@ -13,9 +14,29 @@ SCRIPTS = [
 ]
 
 
+def _bash_command() -> str:
+    if os.name != "nt":
+        return "bash"
+    git_executable = shutil.which("git")
+    if git_executable:
+        git_bash = Path(git_executable).resolve().parents[1] / "bin" / "bash.exe"
+        if git_bash.is_file():
+            return str(git_bash)
+    return "bash"
+
+
+def _bash_path(path: Path) -> str:
+    value = str(path)
+    if os.name != "nt":
+        return value
+    drive, tail = os.path.splitdrive(value)
+    return f"/{drive[0].lower()}{tail.replace(chr(92), '/')}"
+
+
 def test_container_runtime_scripts_are_bash_parseable():
+    bash = _bash_command()
     for script in SCRIPTS:
-        result = subprocess.run(["bash", "-n", str(script)], capture_output=True, text=True)
+        result = subprocess.run([bash, "-n", str(script)], capture_output=True, text=True)
         assert result.returncode == 0, result.stderr
 
 
@@ -225,7 +246,7 @@ def test_lightweight_bundle_contains_offline_dem_and_manifest(tmp_path):
 
     result = subprocess.run(
         [
-            "bash",
+            _bash_command(),
             str(
                 PACKAGE_ROOT
                 / "deploy/container-runtime/package-lightweight-container-bundle.sh"
@@ -233,11 +254,11 @@ def test_lightweight_bundle_contains_offline_dem_and_manifest(tmp_path):
             "--arch",
             "amd64",
             "--image-tar",
-            str(image_tar),
+            _bash_path(image_tar),
             "--dem-dir",
-            str(dem_dir),
+            _bash_path(dem_dir),
             "--out",
-            str(output),
+            _bash_path(output),
         ],
         cwd=PACKAGE_ROOT,
         capture_output=True,

@@ -50,7 +50,13 @@ if (-not (Test-Path -LiteralPath $PythonExe -PathType Leaf)) {
 }
 
 $PreviousPythonPath = $env:PYTHONPATH
+$PreviousGdalData = $env:GDAL_DATA
+$PreviousProjLib = $env:PROJ_LIB
+$PreviousPath = $env:PATH
 $env:PYTHONPATH = Join-Path $RepoRoot "src"
+$env:GDAL_DATA = Join-Path $BuildPrefix "Library\share\gdal"
+$env:PROJ_LIB = Join-Path $BuildPrefix "Library\share\proj"
+$env:PATH = "$BuildPrefix;$BuildPrefix\Library\bin;$BuildPrefix\Scripts;$env:PATH"
 try {
     if (-not $SkipTests) {
         Push-Location $RepoRoot
@@ -85,6 +91,9 @@ try {
     }
 } finally {
     $env:PYTHONPATH = $PreviousPythonPath
+    $env:GDAL_DATA = $PreviousGdalData
+    $env:PROJ_LIB = $PreviousProjLib
+    $env:PATH = $PreviousPath
 }
 
 New-Item -ItemType Directory -Path (Split-Path $RuntimeArchive -Parent) -Force | Out-Null

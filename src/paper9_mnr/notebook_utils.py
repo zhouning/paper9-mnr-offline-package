@@ -7,7 +7,7 @@ import os
 import html
 import uuid
 from importlib.resources import files
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Iterable
 
 import geopandas as gpd
@@ -387,9 +387,11 @@ def manifest_log_entries(manifest: dict[str, object], root: str | Path | None = 
 
 
 def _resolve_project_or_container_path(value: object, root: Path) -> Path:
-    path = Path(str(value))
-    if path.is_absolute() and path.parts[:2] == ("/", "app"):
-        return root / Path(*path.parts[2:])
+    raw_value = str(value)
+    container_path = PurePosixPath(raw_value)
+    if container_path.is_absolute() and container_path.parts[:2] == ("/", "app"):
+        return root.joinpath(*container_path.parts[2:])
+    path = Path(raw_value)
     if path.is_absolute():
         return path
     return root / path
