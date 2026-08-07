@@ -1,0 +1,33 @@
+{
+  "schema_version": "paper9.admin_reference.v1",
+  "source": {
+    "name": "xiangzhen.shp",
+    "provided_path": "/Users/zhouning/Downloads/shp/xiangzhen.shp",
+    "driver": "ESRI Shapefile",
+    "crs": "EPSG:4326",
+    "feature_count": 43655,
+    "dbf_last_update": "2021-06-22",
+    "encoding": "UTF-8"
+  },
+  "selection": {
+    "county_name": "中宁县",
+    "county_code": "640521"
+  },
+  "output": {
+    "path": "reference/admin/xiangzhen_zhongning.gpkg",
+    "layer": "admin_reference",
+    "geometry_type": "Polygon",
+    "crs": "EPSG:4326",
+    "feature_count": 13,
+    "bounds_wgs84": [
+      105.27057502861815,
+      36.82388403981724,
+      106.06424938309212,
+      37.7490728607537
+    ],
+    "bytes": 229376,
+    "sha256": "fc7bb29a67d05a9b70879bf4e8660b31687407a6a2546037ad91c0a76ec5e04e"
+  },
+  "role": "Township name and spatial reference only. It does not create regulatory constraints.",
+  "caveat": "The source date is 2021-06-22 and the source contains names but no township codes. Validate administrative changes against current customer records."
+}

@@ -1,0 +1,67 @@
+{
+  "schema_version": "paper9.built_in_sample_datasets.v1",
+  "package_version": "0.4.0",
+  "algorithm_version": "2.3.0",
+  "profile": "dltb_dem_only",
+  "runtime_network_required": false,
+  "datasets": [
+    {
+      "id": "dongxing",
+      "name": "四川省内江市东兴区",
+      "dltb": {
+        "path": "datasets/dongxing/DLTB_with_slope.gpkg",
+        "layer": "DLTB",
+        "feature_count": 134369,
+        "selected_county_code": "511011",
+        "out_of_county_feature_count": 1,
+        "crs": "EPSG:4326",
+        "bounds_wgs84": [
+          104.97937033982005,
+          29.444050845662936,
+          105.420964214347,
+          29.850406558016648
+        ],
+        "sha256": "eaa71184d9351c8a4099002b3b109c5cee002093c2444e3abadcbdd7fbae8426"
+      },
+      "dem": {
+        "manifest": "dem/copernicus_glo30/DEM_MANIFEST.json",
+        "required_tiles": ["N29E104", "N29E105"]
+      },
+      "admin_reference": {
+        "path": "reference/admin/xiangzhen_dongxing_bishan.gpkg",
+        "county_code": "511011",
+        "feature_count": 29
+      }
+    },
+    {
+      "id": "bishan",
+      "name": "重庆市璧山区",
+      "dltb": {
+        "path": "datasets/bishan/DLTB_with_slope.gpkg",
+        "layer": "DLTB",
+        "feature_count": 101657,
+        "source_county_code": "500227",
+        "current_reference_county_code": "500120",
+        "legacy_code_note": "The bundled DLTB uses the legacy county code 500227; the current township reference uses 500120.",
+        "crs": "EPSG:4326",
+        "bounds_wgs84": [
+          106.04001576200005,
+          29.282454706000067,
+          106.36873229600008,
+          29.887474954000083
+        ],
+        "sha256": "7eccdfb11a98f4e31145e93fd270faea2774bed6ffaef99c66009c4eff9fb677"
+      },
+      "dem": {
+        "manifest": "dem/copernicus_glo30/DEM_MANIFEST.json",
+        "required_tiles": ["N29E106"]
+      },
+      "admin_reference": {
+        "path": "reference/admin/xiangzhen_dongxing_bishan.gpkg",
+        "county_code": "500120",
+        "feature_count": 15,
+        "code_mapping_required": true
+      }
+    }
+  ]
+}

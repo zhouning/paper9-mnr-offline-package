@@ -9,6 +9,7 @@ import numpy as np
 import pyogrio
 import pytest
 import rasterio
+from pyproj import CRS
 from rasterio.transform import from_origin
 from shapely.geometry import box
 
@@ -18,8 +19,16 @@ sys.path.insert(0, str(SRC))
 
 from farmland_mpc.county_env import CountyLevelEnv, FARMLAND, FOREST  # noqa: E402
 from farmland_mpc.landuse import LandUseCodeError  # noqa: E402
-from farmland_mpc.shapefile_io import write_optimized_dltb  # noqa: E402
-from paper9_mnr.fusion import fuse_county, list_source_layers, main, slope_grade  # noqa: E402
+from farmland_mpc.shapefile_io import infer_swap_codes, write_optimized_dltb  # noqa: E402
+from paper9_mnr.dltb_dem_fusion import fuse_dltb_dem_county  # noqa: E402
+from paper9_mnr.fusion import (  # noqa: E402
+    FusionDiagnostics,
+    build_admin_units,
+    fuse_county,
+    list_source_layers,
+    main,
+    slope_grade,
+)
 
 
 def _write_layer(path, frame, layer, *, append):
@@ -192,6 +201,101 @@ def test_fuse_county_builds_paper9_inputs_and_authority_locks(tmp_path):
         "permanent_basic_farmland",
         "locked_dltb_audit",
     }
+
+
+def test_fuse_dltb_dem_county_marks_unavailable_constraints_without_fake_locks(tmp_path):
+    source = tmp_path / "province_authority.gpkg"
+    dem = tmp_path / "county_dem.tif"
+    admin_reference = tmp_path / "admin_reference.gpkg"
+    output_dir = tmp_path / "dltb_only"
+    _build_source(source)
+    _build_dem(dem)
+    _build_admin_reference(admin_reference)
+
+    report = fuse_dltb_dem_county(
+        dltb_source=source,
+        output_dir=output_dir,
+        dem_paths=[dem],
+        admin_reference=admin_reference,
+        county_code="511011",
+        county_name="测试县",
+        metric_crs="EPSG:3857",
+    )
+
+    result = gpd.read_file(output_dir / "DLTB_with_authority_slope.gpkg", layer="dltb")
+    availability = json.loads((output_dir / "input_availability.json").read_text(encoding="utf-8"))
+    assert result["EXCH_LOCK"].eq(0).all()
+    assert result["CONSTR_STA"].eq("NOT_EVALUATED").all()
+    assert result["PDT_GRADE"].eq(-1).all()
+    assert result["slope_mean"].notna().all()
+    assert report["profile"] == "dltb_dem_only"
+    assert report["constraints"]["regulatory_compliance_evaluated"] is False
+    assert report["policy"]["regulatory_compliance_claim_allowed"] is False
+    assert availability["decision_use"] == "exploratory_technical_validation_only"
+    assert not (output_dir / "authority_constraints.gpkg").exists()
+
+
+def test_infer_swap_codes_preserves_legacy_three_digit_scheme():
+    assert infer_swap_codes(["011", "031", "1104"]) == ("011", "031")
+
+
+def test_packaged_zhongning_admin_reference_has_expected_county_and_townships():
+    path = PACKAGE_ROOT / "reference/admin/xiangzhen_zhongning.gpkg"
+    reference = gpd.read_file(path, layer="admin_reference", engine="pyogrio")
+
+    assert len(reference) == 13
+    assert reference["county_code"].unique().tolist() == ["640521"]
+    assert reference["county_name"].unique().tolist() == ["中宁县"]
+    assert reference.geometry.is_valid.all()
+    assert reference.crs.to_epsg() == 4326
+
+
+def test_dltb_only_diagnostics_do_not_claim_four_source_fusion(tmp_path):
+    with FusionDiagnostics(tmp_path, "test-run", operation="dltb_dem_only") as diagnostics:
+        diagnostics.finish("ok")
+
+    events = [
+        json.loads(line)
+        for line in (tmp_path / "dltb_dem_fusion-test-run.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    assert [event["details"]["profile"] for event in events] == [
+        "dltb_dem_only",
+        "dltb_dem_only",
+    ]
+    assert all("four-source" not in event["message"] for event in events)
+
+
+def test_admin_reference_can_map_a_legacy_dltb_county_code(tmp_path):
+    dltb = gpd.GeoDataFrame(
+        {"QSDWDM": ["500227001001"], "QSDWMC": ["旧码村"], "geometry": [box(0, 0, 10, 10)]},
+        crs="EPSG:3857",
+    )
+    reference = gpd.GeoDataFrame(
+        {
+            "XZQMC": ["璧山镇"],
+            "county_code": ["500120"],
+            "source_date": ["2021-06-22"],
+            "geometry": [box(0, 0, 10, 10)],
+        },
+        crs="EPSG:3857",
+    )
+    reference_path = tmp_path / "current_admin.gpkg"
+    reference.to_file(reference_path, layer="admin_reference", driver="GPKG", engine="pyogrio")
+
+    units, report = build_admin_units(
+        dltb,
+        metric_crs=CRS.from_user_input("EPSG:3857"),
+        reference_path=reference_path,
+        reference_layer="admin_reference",
+        reference_county_code="500120",
+    )
+
+    assert len(units) == 1
+    assert units.loc[0, "admin_parent_code"] == "500120"
+    assert report["dltb_county_code"] == "500227"
+    assert report["county_code"] == "500120"
 
 
 def test_fuse_county_accepts_four_independent_sources_without_layer_or_county_input(

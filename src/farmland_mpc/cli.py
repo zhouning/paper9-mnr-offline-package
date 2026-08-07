@@ -12,7 +12,6 @@ Run ``farmland-mpc --help`` to see the current subcommand surface.
 from __future__ import annotations
 
 import logging
-import sys
 from pathlib import Path
 from typing import Optional
 
@@ -187,7 +186,7 @@ def train(
     _setup_logging(verbose)
     from farmland_mpc.train_ensemble import run
 
-    summary = run(
+    run(
         prepared_dir=str(prepared_dir),
         n_members=n_members,
         epochs=epochs,
@@ -224,8 +223,8 @@ def plan(
     proj_crs: Optional[str] = typer.Option(None, "--crs"),
     output_fc: Optional[Path] = typer.Option(None, "--output-shp",
         help="Where to write the optimised DLTB shapefile (with OPT_DLBM, CHG_FLAG, ORIG_DLBM)."),
-    farm_dlbm: str = typer.Option("0101", "--farm-dlbm"),
-    forest_dlbm: str = typer.Option("0301", "--forest-dlbm"),
+    farm_dlbm: Optional[str] = typer.Option(None, "--farm-dlbm"),
+    forest_dlbm: Optional[str] = typer.Option(None, "--forest-dlbm"),
     baimu_area_penalty: Optional[float] = typer.Option(None, "--baimu-area-penalty",
         help="Override env baimu_area_penalty (default 2000.0; paper Eq.1 implies 0)."),
     cultivated_area_floor_delta_ha: Optional[float] = typer.Option(
@@ -253,7 +252,7 @@ def plan(
 
     # Tool 4 was originally written to read the prepared DLTB through arcpy.
     # We pass the prepared_dir + let blocks_env.make_env discover the .shp.
-    summary = run(
+    run(
         ensemble_dir=str(ensemble_dir),
         out_dir=str(out_dir),
         horizon=horizon,

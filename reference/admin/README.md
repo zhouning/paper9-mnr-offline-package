@@ -1,4 +1,13 @@
-# 东兴区、璧山区乡镇空间参考
+# 内置乡镇空间参考
+
+`xiangzhen_zhongning.gpkg` 是 Paper9v2.3 中宁县 DLTB-only 包的行政参考，图层名为
+`admin_reference`，包含中宁县 13 个乡镇面，行政区代码为 `640521`。文件坐标系为
+`EPSG:4326`，来源、范围和校验值记录在 `MANIFEST_ZHONGNING.json`。
+
+该文件仅用于乡镇名称和空间归属，不代替法定行政区划成果，也不生成生态保护红线、
+永久基本农田或交换锁定条件。
+
+## 东兴区、璧山区历史参考
 
 `xiangzhen_dongxing_bishan.gpkg` 从客户提供的全国 `xiangzhen.shp` 中按县名筛出，包含：
 

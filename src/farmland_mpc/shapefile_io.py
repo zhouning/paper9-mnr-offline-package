@@ -198,6 +198,19 @@ def write_optimized_dltb(input_fc, output_fc, env,
     }
 
 
+def infer_swap_codes(values) -> tuple[str, str]:
+    """Return safe farmland/forest output codes for an input DLBM scheme."""
+    report = analyse_land_use_codes(values, require_farmland=True, require_forest=True)
+    if report.scheme == "legacy_three_digit_test_data":
+        return "011", "031"
+    if report.scheme == "gbt21010_2017_third_survey":
+        return DEFAULT_FARM_DLBM, DEFAULT_FOREST_DLBM
+    raise LandUseCodeError(
+        "Cannot infer optimized DLBM codes from an unrecognized input scheme. "
+        "Pass --farm-dlbm and --forest-dlbm explicitly."
+    )
+
+
 # =============================================================================
 # Helpers
 # =============================================================================

@@ -1,0 +1,109 @@
+{
+  "schema_version": "paper9.offline_dem.v1",
+  "product": "Copernicus DEM GLO-30",
+  "product_type": "Digital Surface Model",
+  "source_catalog_url": "https://registry.opendata.aws/copernicus-dem/",
+  "license_name": "Copernicus DEM license",
+  "license_reference": "https://spacedata.copernicus.eu/web/cscda/data-offer/core-datasets/copernicus-dem",
+  "acquired_utc_date": "2026-07-23",
+  "runtime_network_required": false,
+  "runtime_customer_dem_required": false,
+  "raster_contract": {
+    "driver": "GTiff",
+    "crs": "EPSG:4326",
+    "width": 3600,
+    "height": 3600,
+    "band_count": 1,
+    "dtype": "float32",
+    "resolution_degrees": [
+      0.0002777777777777778,
+      0.0002777777777777778
+    ]
+  },
+  "files": [
+    {
+      "tile": "N29E104",
+      "file": "Copernicus_DSM_COG_10_N29_00_E104_00_DEM.tif",
+      "source_url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N29_00_E104_00_DEM/Copernicus_DSM_COG_10_N29_00_E104_00_DEM.tif",
+      "bytes": 46401242,
+      "source_etag_md5": "427243f13ca643a8ca2264f50f5d0d84",
+      "sha256": "f8b536b765669614ec5470f4253cb66ba8e7911cc59e26cfea1dc4143b118f20",
+      "bounds": [
+        103.99986111111112,
+        29.000138888888888,
+        104.99986111111112,
+        30.000138888888888
+      ],
+      "band_checksum": 64188
+    },
+    {
+      "tile": "N29E105",
+      "file": "Copernicus_DSM_COG_10_N29_00_E105_00_DEM.tif",
+      "source_url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N29_00_E105_00_DEM/Copernicus_DSM_COG_10_N29_00_E105_00_DEM.tif",
+      "bytes": 45833277,
+      "source_etag_md5": "af4ff861c659ad2f6f5b1cba86ae2ffa",
+      "sha256": "fdd7880c6f2e73119a48966fe0371a556f637348437ad9084ab4d401fff21002",
+      "bounds": [
+        104.99986111111112,
+        29.000138888888888,
+        105.99986111111112,
+        30.000138888888888
+      ],
+      "band_checksum": 5783
+    },
+    {
+      "tile": "N29E106",
+      "file": "Copernicus_DSM_COG_10_N29_00_E106_00_DEM.tif",
+      "source_url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N29_00_E106_00_DEM/Copernicus_DSM_COG_10_N29_00_E106_00_DEM.tif",
+      "bytes": 46677899,
+      "source_etag_md5": "b505adaf8acc348b91b8063bcd530485",
+      "sha256": "8a1e2071e60ae75f0ffeb5f43fd01c4d1eaa69182c2bff0a36bf215c180d0e11",
+      "bounds": [
+        105.99986111111112,
+        29.000138888888888,
+        106.99986111111112,
+        30.000138888888888
+      ],
+      "band_checksum": 46353
+    }
+  ],
+  "target_coverage_check": {
+    "source": "public administrative-boundary extents used only for package coverage verification",
+    "targets": [
+      {
+        "name": "Sichuan Neijiang Dongxing District",
+        "code": "511011",
+        "bounds_wgs84": [
+          104.983217,
+          29.44174,
+          105.424654,
+          29.846702
+        ],
+        "required_tiles": [
+          "N29E104",
+          "N29E105"
+        ]
+      },
+      {
+        "name": "Chongqing Bishan District",
+        "code": "500120",
+        "bounds_wgs84": [
+          106.04344,
+          29.278877,
+          106.372506,
+          29.884869
+        ],
+        "required_tiles": [
+          "N29E106"
+        ]
+      }
+    ],
+    "all_target_bounds_covered": true
+  },
+  "paper9_usage": {
+    "windowing": "Crop to the DLTB bounds plus three DEM pixels before slope calculation.",
+    "slope": "Horn 3x3 slope in degrees; write polygon statistics to slope_mean and slope_max.",
+    "pdt_role": "PDJB/BZPDJB are retained only for grade-level quality comparison.",
+    "customer_action": "None. The container wrapper selects all required bundled tiles automatically."
+  }
+}

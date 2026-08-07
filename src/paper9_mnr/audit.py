@@ -83,8 +83,21 @@ def build_audit_summary(config: Mapping[str, Any]) -> dict[str, Any]:
         mpc_summary = json.loads(mpc_path.read_text(encoding="utf-8"))
         constraint_status = evaluate_hard_constraints(config, mpc_summary)
 
+    input_profile = dict(config.get("input_profile", {}))
+    profile_mode = input_profile.get("mode", "unspecified")
+    regulatory_constraints_evaluated = profile_mode != "dltb_dem_only"
     return {
         "files": files,
         "all_expected_outputs_exist": all(item["exists"] for item in files.values()),
         "constraint_status": constraint_status,
+        "input_profile_status": {
+            "mode": profile_mode,
+            "evidence_tier": input_profile.get("evidence_tier", "unspecified"),
+            "regulatory_constraints_evaluated": regulatory_constraints_evaluated,
+            "unavailable_authority_data": input_profile.get(
+                "unavailable_authority_data", {}
+            ),
+            "decision_use": input_profile.get("decision_use", "unspecified"),
+            "regulatory_compliance_claim_allowed": regulatory_constraints_evaluated,
+        },
     }

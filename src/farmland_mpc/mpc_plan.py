@@ -207,7 +207,7 @@ def run(ensemble_dir, out_dir, horizon=5, top_k=50, gamma=0.99,
         max_steps=None, seed_offset=0,
         prepared_dir=None, proj_crs=None,
         output_fc=None, input_dltb_fc=None,
-        farm_dlbm="0101", forest_dlbm="0301",
+        farm_dlbm=None, forest_dlbm=None,
         slope_weight=None, cont_weight=None,
         baimu_weight=None, baimu_bonus=None,
         baimu_area_penalty=None,
@@ -508,9 +508,20 @@ def run(ensemble_dir, out_dir, horizon=5, top_k=50, gamma=0.99,
         if output_fc:
             _say(f"\n[MPC] Writing optimized DLTB to {output_fc} ...")
             try:
-                from farmland_mpc.shapefile_io import write_optimized_dltb
+                from farmland_mpc.shapefile_io import infer_swap_codes, write_optimized_dltb
             except ImportError:
-                from core.shapefile_io import write_optimized_dltb
+                from core.shapefile_io import infer_swap_codes, write_optimized_dltb
+            if farm_dlbm is None or forest_dlbm is None:
+                import geopandas as gpd
+
+                input_codes = gpd.read_file(input_dltb_fc, columns=["DLBM"])["DLBM"]
+                inferred_farm, inferred_forest = infer_swap_codes(input_codes)
+                farm_dlbm = farm_dlbm or inferred_farm
+                forest_dlbm = forest_dlbm or inferred_forest
+                _say(
+                    f"[MPC] inferred output DLBM codes: farm={farm_dlbm}, "
+                    f"forest={forest_dlbm}"
+                )
             shp_stats = write_optimized_dltb(
                 input_fc=input_dltb_fc, output_fc=output_fc, env=env,
                 farm_dlbm=farm_dlbm, forest_dlbm=forest_dlbm,

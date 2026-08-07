@@ -78,12 +78,24 @@ def runtime_environment() -> dict[str, Any]:
 class FusionDiagnostics:
     """Incremental human-readable and JSONL diagnostics for one fusion run."""
 
-    def __init__(self, log_dir: Path, run_id: str):
+    def __init__(
+        self,
+        log_dir: Path,
+        run_id: str,
+        operation: str = "authority_four_source",
+    ):
         self.log_dir = Path(log_dir)
         self.run_id = run_id
-        self.log_path = self.log_dir / f"authoritative_fusion-{run_id}.log"
-        self.events_path = self.log_dir / f"authoritative_fusion-{run_id}.jsonl"
-        self.failure_path = self.log_dir / f"authoritative_fusion-{run_id}-failure.json"
+        self.operation = operation
+        log_prefix = (
+            "authoritative_fusion"
+            if operation == "authority_four_source"
+            else "dltb_dem_fusion"
+        )
+        self.log_prefix = log_prefix
+        self.log_path = self.log_dir / f"{log_prefix}-{run_id}.log"
+        self.events_path = self.log_dir / f"{log_prefix}-{run_id}.jsonl"
+        self.failure_path = self.log_dir / f"{log_prefix}-{run_id}-failure.json"
         self.timings: dict[str, float] = {}
         self.warnings: list[str] = []
         self.environment = runtime_environment()
@@ -98,7 +110,8 @@ class FusionDiagnostics:
         self.emit(
             "INFO",
             "run_start",
-            "Authoritative four-source fusion started.",
+            f"Fusion started for profile={self.operation}.",
+            profile=self.operation,
             runtime=self.environment,
         )
         return self
@@ -109,11 +122,11 @@ class FusionDiagnostics:
         if self._events is not None:
             self._events.close()
         if self.log_path.is_file():
-            shutil.copyfile(self.log_path, self.log_dir / "authoritative_fusion-latest.log")
+            shutil.copyfile(self.log_path, self.log_dir / f"{self.log_prefix}-latest.log")
         if self.events_path.is_file():
             shutil.copyfile(
                 self.events_path,
-                self.log_dir / "authoritative_fusion-latest.jsonl",
+                self.log_dir / f"{self.log_prefix}-latest.jsonl",
             )
 
     def emit(
@@ -182,7 +195,8 @@ class FusionDiagnostics:
         self.emit(
             "INFO" if status == "ok" else "ERROR",
             "run_end",
-            f"Authoritative fusion ended with status={status}.",
+            f"Fusion profile={self.operation} ended with status={status}.",
+            profile=self.operation,
             status=status,
             duration_seconds=round(time.monotonic() - self._started, 3),
             timings=self.timings,
@@ -192,8 +206,13 @@ class FusionDiagnostics:
 
     def write_failure(self, exc: Exception, *, arguments: dict[str, Any]) -> None:
         payload = {
-            "schema_version": "paper9.authoritative_fusion_failure.v1",
+            "schema_version": (
+                "paper9.authoritative_fusion_failure.v1"
+                if self.operation == "authority_four_source"
+                else "paper9.dltb_dem_fusion_failure.v1"
+            ),
             "run_id": self.run_id,
+            "profile": self.operation,
             "timestamp_utc": _utc_now(),
             "exception_type": type(exc).__name__,
             "message": str(exc),
@@ -431,9 +450,15 @@ def _polygonal(geometry):
     return None
 
 
-def read_polygon_layer(path: Path, layer: str, *, required: bool) -> tuple[gpd.GeoDataFrame, dict[str, int]]:
+def read_polygon_layer(
+    path: Path,
+    layer: str,
+    *,
+    required: bool,
+    where: str | None = None,
+) -> tuple[gpd.GeoDataFrame, dict[str, int]]:
     try:
-        frame = gpd.read_file(path, layer=layer, engine="pyogrio")
+        frame = gpd.read_file(path, layer=layer, engine="pyogrio", where=where)
     except Exception as exc:  # pragma: no cover - depends on GDAL error messages
         raise FusionError(f"Cannot read layer {layer!r} from {path}: {exc}") from exc
     if frame.crs is None:
@@ -950,16 +975,19 @@ def build_admin_units(
     metric_crs: CRS,
     reference_path: Path | None,
     reference_layer: str,
+    reference_county_code: str | None = None,
 ) -> tuple[gpd.GeoDataFrame, dict[str, Any]]:
     """Build township reference geometry, preferring the bundled 44-feature layer."""
     county_codes = dltb["QSDWDM"].astype(str).str.extract(r"^(\d{6})", expand=False)
     county_codes = county_codes.dropna()
-    county_code = str(county_codes.mode().iloc[0]) if not county_codes.empty else ""
+    dltb_county_code = str(county_codes.mode().iloc[0]) if not county_codes.empty else ""
+    county_code = reference_county_code or dltb_county_code
     if reference_path is None:
         units = _build_dltb_admin_proxy(dltb)
         return units, {
             "mode": "dltb_dissolve_fallback",
             "county_code": county_code,
+            "dltb_county_code": dltb_county_code,
             "feature_count": int(len(units)),
             "warning": "Bundled township reference was not supplied; DLTB dissolve was used.",
         }
@@ -1020,7 +1048,7 @@ def build_admin_units(
         source_date_field,
         source_dataset_field,
     ):
-        if optional and optional not in keep:
+        if optional and optional in selected.columns and optional not in keep:
             keep.append(optional)
     units = selected[[*keep, "geometry"]].copy()
     unmatched_codes = int(units["XZQDM"].eq("").sum())
@@ -1030,6 +1058,7 @@ def build_admin_units(
         "layer": reference_layer,
         "sha256": _sha256(reference_path),
         "county_code": county_code,
+        "dltb_county_code": dltb_county_code,
         "source_feature_count": int(len(reference)),
         "selected_feature_count": int(len(units)),
         "township_code_unmatched": unmatched_codes,

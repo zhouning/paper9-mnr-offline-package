@@ -7,7 +7,11 @@ from typing import Any, Mapping
 
 import yaml
 
-from paper9_mnr.version import ALGORITHM_NAME, ALGORITHM_VERSION
+from paper9_mnr.version import (
+    ALGORITHM_NAME,
+    ALGORITHM_VERSION,
+    SUPPORTED_ALGORITHM_VERSIONS,
+)
 
 
 class ConfigError(ValueError):
@@ -57,10 +61,11 @@ def validate_config(config: Mapping[str, Any]) -> None:
     if algorithm is not None:
         algorithm_map = _as_mapping(algorithm, "algorithm")
         if algorithm_map.get("name") == ALGORITHM_NAME:
-            if algorithm_map.get("version") != ALGORITHM_VERSION:
+            algorithm_version = algorithm_map.get("version")
+            if algorithm_version not in SUPPORTED_ALGORITHM_VERSIONS:
                 raise ConfigError(
-                    f"algorithm.version must be {ALGORITHM_VERSION!r} "
-                    f"when algorithm.name is {ALGORITHM_NAME!r}."
+                    f"algorithm.version must be one of {SUPPORTED_ALGORITHM_VERSIONS!r} "
+                    f"when algorithm.name is {ALGORITHM_NAME!r}; current is {ALGORITHM_VERSION!r}."
                 )
             constraints = _as_mapping(
                 _as_mapping(config["planning"], "planning").get("constraints", {}),
@@ -76,6 +81,8 @@ def validate_config(config: Mapping[str, Any]) -> None:
             optimized_vector = Path(str(_as_mapping(config["outputs"], "outputs")["optimized_vector"]))
             if optimized_vector.suffix.lower() != ".shp":
                 raise ConfigError("outputs.optimized_vector must end with .shp for paper9v2.")
+            if algorithm_version == "2.3.0":
+                _validate_input_profile(config)
 
     slope = _as_mapping(config["slope"], "slope")
     source = slope.get("source")
@@ -109,6 +116,45 @@ def validate_config(config: Mapping[str, Any]) -> None:
                     "Reward profiles alter labels sampled from the environment."
                 )
 
+
+def _validate_input_profile(config: Mapping[str, Any]) -> None:
+    profile = _as_mapping(config.get("input_profile", {}), "input_profile")
+    mode = profile.get("mode")
+    if mode not in {"authority_four_source", "dltb_dem_only"}:
+        raise ConfigError(
+            "paper9v2 2.3.0 requires input_profile.mode to be "
+            "'authority_four_source' or 'dltb_dem_only'."
+        )
+    if mode != "dltb_dem_only":
+        return
+    if profile.get("evidence_tier") != "exploratory_data_limited":
+        raise ConfigError(
+            "dltb_dem_only requires input_profile.evidence_tier="
+            "'exploratory_data_limited'."
+        )
+    unavailable = _as_mapping(
+        profile.get("unavailable_authority_data", {}),
+        "input_profile.unavailable_authority_data",
+    )
+    required_unavailable = {
+        "pdt",
+        "eco_redline",
+        "permanent_basic_farmland",
+    }
+    missing = sorted(required_unavailable - set(unavailable))
+    if missing:
+        raise ConfigError(
+            "dltb_dem_only must record unavailable authority data: "
+            + ", ".join(missing)
+        )
+    if any(unavailable[name] != "not_provided_not_evaluated" for name in required_unavailable):
+        raise ConfigError(
+            "Unavailable authority data must use status 'not_provided_not_evaluated'."
+        )
+    if profile.get("decision_use") != "exploratory_technical_validation_only":
+        raise ConfigError(
+            "dltb_dem_only decision_use must be 'exploratory_technical_validation_only'."
+        )
 
 def reward_change_requires_resample_train(config: Mapping[str, Any], profile_name: str | None = None) -> bool:
     """Return whether the configured reward change requires sample + train."""

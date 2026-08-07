@@ -85,3 +85,32 @@ def test_build_audit_summary_fails_when_mpc_summary_is_missing(tmp_path):
 
     assert summary["constraint_status"]["hard_constraint_passed"] is False
     assert summary["constraint_status"]["failure_reasons"] == ["mpc_summary.json is missing"]
+
+
+def test_build_audit_summary_marks_dltb_only_regulatory_constraints_not_evaluated(tmp_path):
+    config = {
+        "input_profile": {
+            "mode": "dltb_dem_only",
+            "evidence_tier": "exploratory_data_limited",
+            "unavailable_authority_data": {
+                "pdt": "not_provided_not_evaluated",
+                "eco_redline": "not_provided_not_evaluated",
+                "permanent_basic_farmland": "not_provided_not_evaluated",
+            },
+            "decision_use": "exploratory_technical_validation_only",
+        },
+        "data": {"prepared_dir": tmp_path / "prepared"},
+        "training": {"out_subdir": "tool3"},
+        "outputs": {
+            "plan_dir": tmp_path / "plan",
+            "optimized_vector": tmp_path / "plan" / "DLTB_optimized.shp",
+        },
+        "planning": {"constraints": {"cultivated_area_floor_delta_ha": 0}},
+    }
+
+    summary = build_audit_summary(config)
+
+    profile = summary["input_profile_status"]
+    assert profile["regulatory_constraints_evaluated"] is False
+    assert profile["regulatory_compliance_claim_allowed"] is False
+    assert profile["decision_use"] == "exploratory_technical_validation_only"

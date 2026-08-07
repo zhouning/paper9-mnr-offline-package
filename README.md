@@ -4,6 +4,37 @@ This package is a standalone, ArcGIS-free engineering bundle for running
 Paper9/Paper9v2 and recalibrating it on Ministry of Natural Resources
 authoritative parcel data inside an intranet.
 
+The current Zhongning delivery profile is Paper9v2.3.0 / package 0.4.0. It is
+designed for an offline Windows x64 host with no container runtime and accepts
+one province-wide DLTB dataset. The bundle supplies four Copernicus GLO-30 DEM
+tiles and a 13-feature Zhongning township reference, filters county code
+`640521`, and records PDT, ecological redline, and permanent basic farmland as
+not provided and not evaluated. This profile is for exploratory technical
+validation only and cannot establish regulatory compliance. See
+`docs/21_paper9v23_dltb_only_release.md` and
+`docs/22_windows_native_airgap.md`.
+
+The one-command Windows workflow is:
+
+```powershell
+.\bin\run-paper9-windows.ps1 all -DltbSource "E:\authority\DLTB.gdb"
+```
+
+The portable Windows runtime must be built and smoke-tested on a networked
+Windows x64 build machine before transfer to the intranet. The target machine
+does not need Docker, Python, Conda, ArcGIS, administrator rights, or network
+access.
+
+The repository stores the built-in DLTB and DEM assets with Git LFS. A Windows
+build machine must run `git lfs pull` before building the offline ZIP.
+
+The v2.3 package also carries two reproducible sample datasets for local or
+Windows smoke testing: Dongxing (`-Dataset dongxing`) and Bishan (`-Dataset
+bishan`). Dongxing is the recommended first validation because its DLTB code
+`511011` matches the bundled current administrative reference. Bishan's source
+uses legacy code `500227`; the wrapper maps it explicitly to current reference
+code `500120` and records that mapping in the dataset manifest.
+
 The Paper9v2.2.3 customer workflow accepts four independent FileGDB directories
 for each county:
 

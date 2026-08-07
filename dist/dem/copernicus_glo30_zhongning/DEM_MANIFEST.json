@@ -1,0 +1,108 @@
+{
+  "schema_version": "paper9.offline_dem.v1",
+  "product": "Copernicus DEM GLO-30",
+  "product_type": "Digital Surface Model",
+  "source_catalog_url": "https://registry.opendata.aws/copernicus-dem/",
+  "license_name": "Copernicus DEM license",
+  "license_reference": "https://spacedata.copernicus.eu/web/cscda/data-offer/core-datasets/copernicus-dem",
+  "acquired_utc_date": "2026-08-07",
+  "runtime_network_required": false,
+  "runtime_customer_dem_required": false,
+  "raster_contract": {
+    "driver": "GTiff",
+    "crs": "EPSG:4326",
+    "width": 3600,
+    "height": 3600,
+    "band_count": 1,
+    "dtype": "float32",
+    "resolution_degrees": [
+      0.0002777777777777778,
+      0.0002777777777777778
+    ]
+  },
+  "files": [
+    {
+      "tile": "N36E105",
+      "file": "Copernicus_DSM_COG_10_N36_00_E105_00_DEM.tif",
+      "source_url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N36_00_E105_00_DEM/Copernicus_DSM_COG_10_N36_00_E105_00_DEM.tif",
+      "bytes": 41667795,
+      "source_etag_md5": "154e37f85cd52a74201e19e111a6917e",
+      "sha256": "d0abf26ba9d75829943b90a15e013de4c9f8240348e39a2c28e35eff7c3e3e43",
+      "bounds": [
+        104.99986111111112,
+        36.00013888888889,
+        105.99986111111112,
+        37.00013888888889
+      ],
+      "band_checksum": 60704
+    },
+    {
+      "tile": "N36E106",
+      "file": "Copernicus_DSM_COG_10_N36_00_E106_00_DEM.tif",
+      "source_url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N36_00_E106_00_DEM/Copernicus_DSM_COG_10_N36_00_E106_00_DEM.tif",
+      "bytes": 41993355,
+      "source_etag_md5": "6312b16581635679cd42c98a0002a00c",
+      "sha256": "c79a92a0e522762bfe31343db5ebab929947a5e560dd565d2f3f509c800e0b08",
+      "bounds": [
+        105.99986111111112,
+        36.00013888888889,
+        106.99986111111112,
+        37.00013888888889
+      ],
+      "band_checksum": 8655
+    },
+    {
+      "tile": "N37E105",
+      "file": "Copernicus_DSM_COG_10_N37_00_E105_00_DEM.tif",
+      "source_url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N37_00_E105_00_DEM/Copernicus_DSM_COG_10_N37_00_E105_00_DEM.tif",
+      "bytes": 38695193,
+      "source_etag_md5": "92ccd9eee2f5dce10272ba7af9d9e338",
+      "sha256": "6e5f0541225510c373f0526dabaecc555150c46d8681c9d4356e217e4fe9c756",
+      "bounds": [
+        104.99986111111112,
+        37.00013888888889,
+        105.99986111111112,
+        38.00013888888889
+      ],
+      "band_checksum": 65064
+    },
+    {
+      "tile": "N37E106",
+      "file": "Copernicus_DSM_COG_10_N37_00_E106_00_DEM.tif",
+      "source_url": "https://copernicus-dem-30m.s3.amazonaws.com/Copernicus_DSM_COG_10_N37_00_E106_00_DEM/Copernicus_DSM_COG_10_N37_00_E106_00_DEM.tif",
+      "bytes": 38157810,
+      "source_etag_md5": "122d9fbe16e98b0ecc8617dd96816e4b",
+      "sha256": "43a6804158fc979fa65755490b2c4a449a2460ee327d832c2c4b95560c39bc24",
+      "bounds": [
+        105.99986111111112,
+        37.00013888888889,
+        106.99986111111112,
+        38.00013888888889
+      ],
+      "band_checksum": 51022
+    }
+  ],
+  "target_coverage_check": {
+    "target": "Ningxia Zhongwei Zhongning County",
+    "county_code": "640521",
+    "target_bounds_wgs84": [
+      105.27057502861815,
+      36.82388403981724,
+      106.06424938309212,
+      37.7490728607537
+    ],
+    "required_tiles": [
+      "N36E105",
+      "N36E106",
+      "N37E105",
+      "N37E106"
+    ],
+    "all_target_bounds_covered": true
+  },
+  "paper9_usage": {
+    "windowing": "Crop to DLTB bounds plus three DEM pixels before slope calculation.",
+    "slope": "Horn 3x3 slope in degrees; write parcel statistics to slope_mean and slope_max.",
+    "pdt_role": "PDT is unavailable and is explicitly recorded as not evaluated.",
+    "customer_action": "None. The Windows wrapper selects all four bundled tiles automatically."
+  }
+}

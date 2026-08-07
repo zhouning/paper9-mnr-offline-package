@@ -1,0 +1,31 @@
+name: paper9-mnr-windows-x86_64
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.11
+  - numpy
+  - pandas
+  - scipy
+  - geopandas
+  - pyogrio
+  - gdal
+  - rasterio
+  - shapely
+  - fiona
+  - pyproj
+  - networkx
+  - libpysal
+  - scikit-learn
+  - pytorch
+  - onnx
+  - onnxruntime
+  - onnxscript
+  - gymnasium
+  - pyyaml
+  - typer
+  - tqdm
+  - pytest
+  - ruff
+  - conda-pack
+  - pip

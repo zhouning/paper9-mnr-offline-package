@@ -1,0 +1,83 @@
+algorithm:
+  name: paper9v2
+  version: 2.3.0
+
+project:
+  name: paper9v23-zhongning-dltb-only
+  description: Exploratory Zhongning County workflow using customer DLTB plus bundled DEM and township reference.
+
+input_profile:
+  mode: dltb_dem_only
+  evidence_tier: exploratory_data_limited
+  unavailable_authority_data:
+    pdt: not_provided_not_evaluated
+    eco_redline: not_provided_not_evaluated
+    permanent_basic_farmland: not_provided_not_evaluated
+  decision_use: exploratory_technical_validation_only
+
+crs: EPSG:32648
+
+data:
+  dltb: data/input/DLTB_with_authority_slope.gpkg
+  admin_units: data/input/admin_units.gpkg
+  dem: data/input/DEM_placeholder.tif
+  prepared_dir: data/working/prepared_paper9v23_zhongning_dltb_only
+
+fields:
+  dlbm: DLBM
+  qsdwdm: QSDWDM
+  bsm: BSM
+  admin_name: XZQMC
+
+slope:
+  source: field
+  field: slope_mean
+
+preparation:
+  min_parcels: 3
+  min_area_ha: 0.5
+  max_parcels: 30
+  min_parcels_per_township: 50
+
+outputs:
+  plan_dir: outputs/plan_paper9v23_zhongning_dltb_only
+  optimized_vector: outputs/plan_paper9v23_zhongning_dltb_only/DLTB_optimized.shp
+
+sampling:
+  n_episodes: 60
+  n_states: 1000
+  n_actions: 50
+  seed: 0
+
+training:
+  n_members: 3
+  epochs: 30
+  patience: 8
+  lambda_rank: 5.0
+  margin: 0.1
+  batch_size: 256
+  seed_base: 0
+  torch_threads: 0
+  out_subdir: tool3
+
+planning:
+  horizon: 5
+  top_k: 50
+  mpc_batch_size: 1024
+  n_episodes: 1
+  continuation: random
+  scoring: reward
+  threads: 0
+  seed_offset: 0
+  constraints:
+    cultivated_area_floor_delta_ha: 0
+
+reward:
+  slope_weight: 4100.0
+  cont_weight: 600.0
+  baimu_weight: 2300.0
+  baimu_bonus: 9.0
+  baimu_area_penalty: 3100.0
+
+workflow:
+  force_resample_and_retrain_on_reward_change: true

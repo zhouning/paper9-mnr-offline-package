@@ -1,4 +1,8 @@
 import importlib.util
+import json
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -22,7 +26,7 @@ def test_build_run_metadata_uses_config_algorithm_and_image_ref(monkeypatch):
 
     metadata = module._build_run_metadata(config)
 
-    assert metadata["package_version"] == "0.3.3"
+    assert metadata["package_version"] == "0.4.0"
     assert metadata["algorithm_name"] == "paper9v2"
     assert metadata["algorithm_version"] == "2.2.3"
     assert metadata["image_ref"] == "paper9-mnr-offline:paper9v2-2.2.3-legacy-amd64"
@@ -34,7 +38,7 @@ def test_build_run_metadata_does_not_label_legacy_config_as_paper9v2(monkeypatch
 
     metadata = module._build_run_metadata({})
 
-    assert metadata["package_version"] == "0.3.3"
+    assert metadata["package_version"] == "0.4.0"
     assert metadata["algorithm_name"] == ""
     assert metadata["algorithm_version"] == ""
     assert metadata["image_ref"] == ""
@@ -84,3 +88,78 @@ def test_build_full_pipeline_commands_append_audit_gate():
         "configs/paper9v22_authority_constraints.yml",
         "--write",
     ]
+
+
+def test_audit_script_writes_summary_under_configured_outputs(tmp_path):
+    audit_path = PACKAGE_ROOT / "scripts" / "05_audit.py"
+    config_path = tmp_path / "runtime.yml"
+    plan_dir = tmp_path / "data" / "outputs" / "plan"
+    config_path.write_text(
+        """
+algorithm:
+  name: paper9v2
+  version: 2.3.0
+project:
+  name: audit-test
+data:
+  dltb: data/input/DLTB_with_authority_slope.gpkg
+  dem: data/input/DEM_placeholder.tif
+  prepared_dir: data/working/prepared
+fields:
+  dlbm: DLBM
+  qsdwdm: QSDWDM
+  bsm: BSM
+slope:
+  source: field
+  field: slope_mean
+outputs:
+  plan_dir: {plan_dir}
+  optimized_vector: {plan_dir}/DLTB_optimized.shp
+sampling:
+  n_episodes: 1
+  n_states: 1
+  n_actions: 1
+  seed: 0
+training:
+  n_members: 1
+  epochs: 1
+  patience: 1
+  lambda_rank: 1.0
+  out_subdir: tool3
+planning:
+  horizon: 1
+  top_k: 1
+  n_episodes: 1
+  constraints:
+    cultivated_area_floor_delta_ha: 0
+workflow:
+  force_resample_and_retrain_on_reward_change: true
+input_profile:
+  mode: dltb_dem_only
+  evidence_tier: exploratory_data_limited
+  unavailable_authority_data:
+    pdt: not_provided_not_evaluated
+    eco_redline: not_provided_not_evaluated
+    permanent_basic_farmland: not_provided_not_evaluated
+  decision_use: exploratory_technical_validation_only
+""".format(plan_dir=plan_dir.as_posix()),
+        encoding="utf-8",
+    )
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(audit_path),
+            str(config_path),
+            "--write",
+        ],
+        cwd=PACKAGE_ROOT,
+        env={**os.environ, "PYTHONPATH": str(PACKAGE_ROOT / "src")},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 1, result.stderr
+    summary_path = plan_dir.parent / "audit_summary.json"
+    assert summary_path.is_file()
+    assert json.loads(summary_path.read_text(encoding="utf-8"))["all_expected_outputs_exist"] is False
