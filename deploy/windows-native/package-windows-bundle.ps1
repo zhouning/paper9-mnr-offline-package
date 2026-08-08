@@ -89,7 +89,7 @@ try {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot "run-paper9-windows.ps1") -Destination (Join-Path $Staging "bin")
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot "verify-paper9-package.ps1") -Destination (Join-Path $Staging "bin")
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot "environment-windows-x86_64.yml") -Destination (Join-Path $Staging "docs")
-    foreach ($DocName in @("21_paper9v23_dltb_only_release.md", "22_windows_native_airgap.md")) {
+    foreach ($DocName in @("21_paper9v23_dltb_only_release.md", "22_windows_native_airgap.md", "23_windows_native_validation_20260808.md")) {
         Copy-Item -LiteralPath (Join-Path $RepoRoot "docs\$DocName") -Destination (Join-Path $Staging "docs")
     }
     Copy-Item -Path (Join-Path $DemDir "*") -Destination (Join-Path $Staging "dem\copernicus_glo30_zhongning") -Recurse
@@ -168,17 +168,30 @@ try {
 Paper9v2.3 Zhongning Windows offline package
 
 1. Extract this ZIP to a short local path, for example D:\paper9_zhongning.
-2. Open Windows PowerShell in that directory.
-3. Verify the package:
+2. Open Windows PowerShell in that directory. The complete manual is in
+   docs\22_windows_native_airgap.md; the validation record is in
+   docs\23_windows_native_validation_20260808.md.
+3. Verify the outer ZIP hash, then verify the extracted package:
+   Get-FileHash .\paper9-mnr-offline-paper9v2-2.3.0-windows-x86_64.zip -Algorithm SHA256
    .\bin\verify-paper9-package.ps1
-4. Fuse and run with the province-wide DLTB:
-   .\bin\run-paper9-windows.ps1 all -DltbSource "E:\authority\DLTB.gdb"
+   .\bin\run-paper9-windows.ps1 check
 
-The built-in Dongxing sample can be run without a customer input:
-   .\bin\run-paper9-windows.ps1 all -Dataset dongxing
-The built-in Bishan sample uses source county code 500227 and maps it to the
-current township reference code 500120:
-   .\bin\run-paper9-windows.ps1 all -Dataset bishan
+Built-in data assets:
+- Dongxing: DLTB, 2 DEM tiles, and 29 township reference polygons.
+  Run: .\bin\run-paper9-windows.ps1 all -Dataset dongxing
+- Bishan: DLTB, 1 DEM tile, and 15 township reference polygons. The bundled DLTB
+  uses source code 500227 and maps to current reference code 500120.
+  Run: .\bin\run-paper9-windows.ps1 all -Dataset bishan
+- Zhongning: no DLTB is bundled; provide the customer DLTB with -DltbSource.
+  The package includes 4 DEM tiles and 13 township reference polygons for county
+  code 640521.
+
+For a customer DLTB:
+   .\bin\run-paper9-windows.ps1 all -DltbSource "E:\authority\DLTB.gdb" -DataRoot "E:\paper9-work\640521"
+After fusion, use the same -DataRoot for separate stages if needed:
+   .\bin\run-paper9-windows.ps1 dry-run -DataRoot "E:\paper9-work\640521"
+   .\bin\run-paper9-windows.ps1 run -DataRoot "E:\paper9-work\640521"
+   .\bin\run-paper9-windows.ps1 audit -DataRoot "E:\paper9-work\640521"
 
 No Docker, Python, Conda, administrator rights, or network connection is required
 on the target machine. Results are exploratory because PDT, ecological redline,

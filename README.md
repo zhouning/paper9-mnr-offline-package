@@ -1,4 +1,4 @@
-﻿# Paper9 MNR Offline Package
+# Paper9 MNR Offline Package
 
 This package is a standalone, ArcGIS-free engineering bundle for running
 Paper9/Paper9v2 and recalibrating it on Ministry of Natural Resources
@@ -11,8 +11,9 @@ tiles and a 13-feature Zhongning township reference, filters county code
 `640521`, and records PDT, ecological redline, and permanent basic farmland as
 not provided and not evaluated. This profile is for exploratory technical
 validation only and cannot establish regulatory compliance. See
-`docs/21_paper9v23_dltb_only_release.md` and
-`docs/22_windows_native_airgap.md`.
+`docs/21_paper9v23_dltb_only_release.md`,
+`docs/22_windows_native_airgap.md`, and the Windows validation handoff in
+`docs/23_windows_native_validation_20260808.md`.
 
 The one-command Windows workflow is:
 

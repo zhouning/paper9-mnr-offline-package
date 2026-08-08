@@ -1,6 +1,7 @@
 # Windows Native Offline Validation Handoff (2026-08-08)
 
-This document records the Windows x64 validation completed locally from commit `e89ce36`.
+This document records the Windows x64 validation completed locally on 2026-08-08.
+The package `MANIFEST.json` records the source revision used to build each ZIP.
 
 ## Handoff conclusion
 
@@ -29,10 +30,11 @@ Formal package:
 
 ```text
 dist/paper9-mnr-offline-paper9v2-2.3.0-windows-x86_64.zip
-size: 1,154,519,074 bytes
-sha256: 681b6869b0c5d110a103478ededb3fa4faa97c0c6ec4df3ae567c27dd4e40e8a
 sidecar: dist/paper9-mnr-offline-paper9v2-2.3.0-windows-x86_64.zip.sha256
 ```
+
+The sidecar is the authoritative checksum for the ZIP. It is kept outside the ZIP because
+including the ZIP hash inside itself would create a self-referential checksum.
 
 Dongxing `prepare -> sample -> train -> plan -> audit` artifacts passed structured validation:
 

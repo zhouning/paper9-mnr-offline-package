@@ -35,7 +35,7 @@ DEM 来源、范围和逐文件校验值见
 
 为便于在另一台 Windows 机器上复核，包还内置两套样例 DLTB：
 
-- `datasets/dongxing/DLTB_with_slope.gpkg`：134369 个图斑，筛选码 `511011`，推荐作为首个验证集；
+- `datasets/dongxing/DLTB_with_slope.gpkg`：共 134369 个图斑，其中 134368 个图斑属于筛选码 `511011`，推荐作为首个验证集；
 - `datasets/bishan/DLTB_with_slope.gpkg`：101657 个图斑，源数据主码为旧码 `500227`，当前行政参考为 `500120`。
 
 两套样例的文件校验值、DEM 瓦片和行政参考关系见 `dist/datasets/MANIFEST.json`。样例仍属于
@@ -75,7 +75,7 @@ v2.3 不推测、不模拟也不补造缺失的管控数据：
 
 ## 5. 验证状态
 
-截至 2026-08-07：
+截至 2026-08-08：
 
 - 四幅 DEM 已完成字节数、SHA-256、CRS、分辨率、范围和波段校验；
 - 中宁县行政参考已验证 13 个有效面、行政区代码 `640521` 和 `EPSG:4326`；
@@ -83,12 +83,12 @@ v2.3 不推测、不模拟也不补造缺失的管控数据：
 - 已选择内江市东兴区完成本机真实数据冒烟验证：筛出 134368 个 `511011` 图斑，使用
   `N29E104`、`N29E105` 两幅内置 DEM 计算坡度，134368 个图斑均取得坡度值，并匹配
   29 个内置乡镇行政面；
-- 在同一份东兴融合结果上，用 100 条 transition、2 个 pairwise 状态 x 5 个动作、1 个模型
-  x 1 epoch 跑通 `prepare -> sample -> train -> plan -> audit`。ONNX 最大一致性误差约
-  `1.19e-7`，规划完成 100 步，审计确认全部期望输出存在，耕地面积变化 `+1.6716 ha`、
-  平均坡度变化 `-0.0807%`、连片度变化 `+0.0002187`；
-- 东兴默认大参数运行已完成 6000 条 transition，并运行到 pairwise 500/1000 后人工停止，
-  因而上述结果属于完整流程冒烟验证，不等同于默认参数正式验收；
+- 在同一份东兴融合结果上，Windows x64 已完成默认参数的 `prepare -> sample -> train -> plan -> audit`：
+  6000 条 transition、1000 个 pairwise states（每个 50 个动作）、3 个 ensemble member、100 步 MPC。
+  审计确认全部期望输出存在，硬约束通过，耕地面积变化 `+392.60 ha`、平均坡度变化 `-0.3457%`、
+  连片度变化 `+0.0487`，farm -> forest 和 forest -> farm 均为 479；
+- Windows 原生运行时已在独立 Windows x64 机器上完成 `check`，Python `3.11.15`、GDAL、Rasterio、
+  PyTorch、ONNX Runtime 导入通过，完整 pytest 为 `117 passed`；
 - 本机 `/Users/zhouning/Downloads/宁夏` 只有 Excel 清单，没有实际 DLTB 空间数据；
 - 正式中宁县端到端运行仍需现场 DLTB；
 - Windows x64 运行时必须在联网 Windows x64 构建机上生成并做一次冒烟测试，不能在 macOS 上交叉生成。

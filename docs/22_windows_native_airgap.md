@@ -49,6 +49,20 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 如果构建环境已存在且确认可复用，增加 `-ReuseEnvironment`。不要用 `-SkipTests` 制作正式交付包。
 
+## 2.1 包内置数据资产
+
+正式 ZIP 内置三类可复核数据资产，路径和逐文件 SHA-256 见对应 `MANIFEST.json`：
+
+| 数据集 | 内置地类图斑 | 内置 DEM | 内置行政参考 | 运行方式 |
+|---|---|---|---|---|
+| 内江市东兴区 | `datasets/dongxing/DLTB_with_slope.gpkg`，134369 个图斑，筛选码 `511011` | `N29E104`、`N29E105` | 29 个乡镇面 | `-Dataset dongxing` |
+| 重庆市璧山区 | `datasets/bishan/DLTB_with_slope.gpkg`，101657 个图斑，源码 `500227` 映射到 `500120` | `N29E106` | 15 个乡镇面 | `-Dataset bishan` |
+| 宁夏中宁县 | **不内置 DLTB**，现场通过 `-DltbSource` 提供 | `N36E105`、`N36E106`、`N37E105`、`N37E106` | 13 个乡镇面，县码 `640521` | `-Dataset zhongning` 或自定义 DLTB |
+
+中宁县是“内置 DEM + 行政参考、现场提供地类图斑”的交付模式；程序不伪造、推测或替代客户 DLTB。
+东兴和璧山样例仅用于包内冒烟测试，三套数据均属于 `dltb_dem_only` 探索性技术验证，不包含 PDT、
+生态保护红线或永久基本农田。
+
 ## 3. 构建机冒烟测试
 
 先在一台不依赖构建环境 PATH 的 Windows x64 机器上解压 ZIP。建议使用短路径：
@@ -144,7 +158,32 @@ cd D:\paper9_zhongning
 `-DataRoot "E:\paper9-work\640521"` 改到空间更大的本地盘；同一次运行的后续命令必须使用相同
 `-DataRoot`。
 
-## 5. 现场资源和安全边界
+## 5. 输出、重试和故障排查
+
+融合完成后至少检查：
+
+- `<DataRoot>\input\fusion_report.json`：县域筛选、DEM、行政参考和缺失约束状态；
+- `<DataRoot>\input\input_availability.json`：输入是否可用及允许用途；
+- `<DataRoot>\input\DLTB_with_authority_slope.gpkg`：融合后的运行图斑；
+- `<DataRoot>\input\admin_units.gpkg`：运行行政单元；
+- `<DataRoot>\outputs\logs\`：每个阶段的日志；
+- `<DataRoot>\outputs\audit_summary.json`：最终审计和 `regulatory_compliance_claim_allowed`。
+
+`fuse` 只读取客户 FileGDB，不修改源数据；`run` 必须在同一 `DataRoot` 已完成融合后执行。
+一次运行中断时保留 `outputs\logs\` 和 `input\fusion_report.json`，先查看最后一个失败阶段；需要全新运行时，
+使用新的 `-DataRoot`，避免覆盖原始证据。省级 DLTB 可通过 `-DltbLayer` 指定实际面图层，
+通过 `-CountyCode`、`-ReferenceCountyCode`、`-Config`、`-DemDir` 或 `-AdminReference` 覆盖默认值。
+
+| 现象 | 处理 |
+|---|---|
+| PowerShell 禁止运行脚本 | 当前会话执行 `Set-ExecutionPolicy -Scope Process Bypass`，不需要管理员权限。 |
+| `conda-unpack` 或 DLL 错误 | 把 ZIP 解压到本地短路径（如 `D:\paper9_zhongning`），不要从网络共享目录直接运行，再重跑 `check`。 |
+| 找不到 DLTB 图层 | 将 `-DltbSource` 指向完整 FileGDB 目录；多图层时增加 `-DltbLayer`。 |
+| 筛选不到县域图斑 | 检查六位行政区代码字段，必要时显式传 `-CountyCode`；字段和 CRS 要求见 `docs/21_paper9v23_dltb_only_release.md`。 |
+| 磁盘或内存不足 | 将 `-DataRoot` 放到空间更大的本地 NTFS 磁盘；自治区级数据建议至少 32 GB 内存。 |
+| 运行中断或审计失败 | 不删除日志；收集 `outputs\logs\`、`input\fusion_report.json`、`input\input_availability.json` 和 `outputs\audit_summary.json`。 |
+
+## 6. 现场资源和安全边界
 
 建议至少 16 GB 内存、20 GB 可用磁盘；较大的自治区级 DLTB 建议 32 GB 内存。融合阶段只读取
 客户 DLTB，不修改源 FileGDB。输出和日志全部位于 `DataRoot`。
