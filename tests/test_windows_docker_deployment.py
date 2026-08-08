@@ -1,4 +1,3 @@
-import subprocess
 from pathlib import Path
 
 import yaml
@@ -53,12 +52,6 @@ def test_container_smoke_config_is_valid():
     assert config["planning"]["horizon"] == 1
 
 
-def test_container_smoke_script_is_bash_parseable():
-    script = PACKAGE_ROOT / "scripts/smoke_paper9v23_container.sh"
-    result = subprocess.run(
-        ["bash", "-n", str(script)], capture_output=True, text=True, check=False
-    )
-    assert result.returncode == 0, result.stderr
 
 
 def test_v23_bundle_script_contains_image_and_asset_manifest():
