@@ -4,6 +4,9 @@
 
 目标环境是离线 Windows x64 且没有容器，因此交付一个自带运行时的 ZIP：
 
+内网目标机只使用 **Windows PowerShell 5.1 或更高版本** 执行包内的 `.ps1` 脚本；
+不需要、也不应依赖 `cmd.exe`、批处理文件或 WSL。下面所有命令均在 PowerShell 中执行。
+
 ```text
 paper9-mnr-offline-paper9v2-2.3.0-windows-x86_64/
   app/                  Paper9 源码、脚本和配置
@@ -115,6 +118,10 @@ cd D:\paper9_zhongning
 .\bin\run-paper9-windows.ps1 fuse `
   -DltbSource "E:\宁夏数据\2025DLTB.gdb"
 ```
+
+`-DltbSource` 必须指向完整的 Esri File Geodatabase 目录（路径以 `.gdb` 结尾），
+不是单个文件、压缩包或 `.gpkg`。脚本会在 `fuse`/`all` 开始时检查这一点；
+GDB 内有多个候选面图层时，再用 `-DltbLayer` 指定实际图层名。
 
 如果 FileGDB 中有多个候选面图层，可增加 `-DltbLayer "实际图层名"`。程序按六位代码
 `640521` 筛选中宁县，不要求预先裁县。

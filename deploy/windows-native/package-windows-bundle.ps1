@@ -168,7 +168,8 @@ try {
 Paper9v2.3 Zhongning Windows offline package
 
 1. Extract this ZIP to a short local path, for example D:\paper9_zhongning.
-2. Open Windows PowerShell in that directory. The complete manual is in
+2. Open Windows PowerShell 5.1+ in that directory. The target machine uses only
+   PowerShell; cmd.exe, batch files, and WSL are not required. The complete manual is in
    docs\22_windows_native_airgap.md; the validation record is in
    docs\23_windows_native_validation_20260808.md.
 3. Verify the outer ZIP hash, then verify the extracted package:
@@ -185,6 +186,9 @@ Built-in data assets:
 - Zhongning: no DLTB is bundled; provide the customer DLTB with -DltbSource.
   The package includes 4 DEM tiles and 13 township reference polygons for county
   code 640521.
+  The source must be a complete Esri File Geodatabase directory ending in .gdb;
+  a single file, archive, or GeoPackage is rejected by the PowerShell wrapper.
+
 
 For a customer DLTB:
    .\bin\run-paper9-windows.ps1 all -DltbSource "E:\authority\DLTB.gdb" -DataRoot "E:\paper9-work\640521"
@@ -193,7 +197,7 @@ After fusion, use the same -DataRoot for separate stages if needed:
    .\bin\run-paper9-windows.ps1 run -DataRoot "E:\paper9-work\640521"
    .\bin\run-paper9-windows.ps1 audit -DataRoot "E:\paper9-work\640521"
 
-No Docker, Python, Conda, administrator rights, or network connection is required
+No Docker, Python, Conda, administrator rights, cmd.exe, or network connection is required
 on the target machine. Results are exploratory because PDT, ecological redline,
 and permanent basic farmland are not evaluated.
 "@

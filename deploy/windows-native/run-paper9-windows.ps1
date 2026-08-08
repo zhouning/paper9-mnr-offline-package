@@ -48,6 +48,7 @@ if (Test-Path -LiteralPath (Join-Path $ParentOfBin "app\src")) {
 
 $RuntimeRoot = Join-Path $BundleRoot "runtime"
 $script:PythonExe = Join-Path $RuntimeRoot "python.exe"
+$ExternalDltbSource = -not [string]::IsNullOrWhiteSpace($DltbSource)
 $DatasetDefaults = switch ($Dataset) {
     "zhongning" {
         [ordered]@{
@@ -198,6 +199,14 @@ function Assert-FusedInputs {
 function Invoke-Fusion {
     if (-not $DltbSource) {
         throw "-DltbSource is required for the Zhongning dataset; use -Dataset dongxing or -Dataset bishan for built-in samples."
+    }
+    if ($ExternalDltbSource) {
+        if (-not (Test-Path -LiteralPath $DltbSource -PathType Container)) {
+            throw "-DltbSource must point to an existing Esri FileGDB directory (*.gdb), not a file."
+        }
+        if (-not $DltbSource.EndsWith(".gdb", [StringComparison]::OrdinalIgnoreCase)) {
+            throw "-DltbSource must point to a complete Esri FileGDB directory whose path ends in .gdb."
+        }
     }
     $ResolvedDltb = (Resolve-Path -LiteralPath $DltbSource).Path
     if (-not (Test-Path -LiteralPath $DemDir -PathType Container)) {

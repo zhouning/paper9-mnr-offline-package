@@ -107,11 +107,15 @@ def test_windows_wrapper_exposes_portable_dltb_only_workflow():
     assert 'county_code = "500227"' in script
     assert 'reference_county_code = "500120"' in script
     assert '"--dltb-source", $ResolvedDltb' in script
+    assert '$ExternalDltbSource = -not [string]::IsNullOrWhiteSpace($DltbSource)' in script
+    assert 'Test-Path -LiteralPath $DltbSource -PathType Container' in script
+    assert '$DltbSource.EndsWith(".gdb", [StringComparison]::OrdinalIgnoreCase)' in script
     assert "fuse_dltb_dem_county.py" in script
     assert "paper9v23_zhongning_dltb_only.yml" in script
     assert "conda-unpack.exe" in script
     assert '$env:PYTHONIOENCODING = "utf-8"' in script
     assert '$env:PYTHONUTF8 = "1"' in script
+    assert "cmd.exe" not in script.lower()
     assert "--reference-county-code" in script
     assert "-Dataset dongxing" in script
     assert "docker" not in script.lower()
