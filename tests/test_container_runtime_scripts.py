@@ -11,6 +11,8 @@ SCRIPTS = [
     PACKAGE_ROOT / "deploy/container-runtime/run-paper9-container.sh",
     PACKAGE_ROOT / "deploy/container-runtime/package-container-runtime-bundle.sh",
     PACKAGE_ROOT / "deploy/container-runtime/package-lightweight-container-bundle.sh",
+    PACKAGE_ROOT / "deploy/container-runtime/package-paper9v23-image-bundle.sh",
+    PACKAGE_ROOT / "scripts/smoke_paper9v23_container.sh",
 ]
 
 

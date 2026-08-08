@@ -4,9 +4,9 @@ FROM ${BASE_IMAGE}
 ARG TARGETPLATFORM
 ARG PIP_INDEX_URL=https://pypi.org/simple
 ARG PIP_EXTRA_INDEX_URL=https://download.pytorch.org/whl/cpu
-ARG PACKAGE_VERSION=0.3.3
+ARG PACKAGE_VERSION=0.4.0
 ARG ALGORITHM_NAME=paper9v2
-ARG ALGORITHM_VERSION=2.2.3
+ARG ALGORITHM_VERSION=2.3.0
 ARG GIT_COMMIT=unknown
 ARG BUILD_TIME=unknown
 ARG LEGACY_X86_64=0
@@ -17,12 +17,16 @@ LABEL org.opencontainers.image.title="Paper9 MNR offline package" \
       org.opencontainers.image.version="${PACKAGE_VERSION}" \
       org.opencontainers.image.revision="${GIT_COMMIT}" \
       org.opencontainers.image.created="${BUILD_TIME}" \
-      org.opencontainers.image.source="https://github.com/paper9/paper9-mnr-offline-package" \
+      org.opencontainers.image.source="https://github.com/zhouning/paper9-mnr-offline-package" \
       io.paper9.algorithm.name="${ALGORITHM_NAME}" \
-      io.paper9.algorithm.version="${ALGORITHM_VERSION}"
+      io.paper9.algorithm.version="${ALGORITHM_VERSION}" \
+      io.paper9.input.profile="dltb_dem_only"
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONIOENCODING=utf-8 \
+    PYTHONUTF8=1 \
+    PAPER9_OFFLINE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     MPLBACKEND=Agg
