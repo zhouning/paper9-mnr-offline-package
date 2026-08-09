@@ -159,6 +159,8 @@ function Initialize-Paper9Runtime {
     $env:PYTHONPATH = Join-Path $AppRoot "src"
     $env:PAPER9_OFFLINE = "1"
     $env:NO_PROXY = "*"
+    $env:PAPER9_APP_ROOT = $AppRoot
+    $env:PAPER9_PACKAGE_ROOT = $BundleRoot
     $env:PATH = "$RuntimeRoot;$RuntimeRoot\Library\bin;$RuntimeRoot\Scripts;$env:PATH"
     $env:GDAL_DATA = Join-Path $RuntimeRoot "Library\share\gdal"
     $env:PROJ_LIB = Join-Path $RuntimeRoot "Library\share\proj"

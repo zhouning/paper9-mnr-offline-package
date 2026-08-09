@@ -130,6 +130,47 @@ def test_windows_wrapper_enables_utf8_inside_runtime_initialization():
 
     assert '$env:PYTHONIOENCODING = "utf-8"' in initialization
     assert '$env:PYTHONUTF8 = "1"' in initialization
+    assert '$env:PAPER9_APP_ROOT = $AppRoot' in initialization
+    assert '$env:PAPER9_PACKAGE_ROOT = $BundleRoot' in initialization
+
+
+def test_environment_check_supports_split_native_bundle_layout(tmp_path):
+    bundle_root = tmp_path / "bundle"
+    app_root = bundle_root / "app"
+    for path in (
+        app_root / "src/paper9_mnr",
+        app_root / "src/farmland_mpc",
+        app_root / "configs",
+        app_root / "scripts",
+        bundle_root / "docs",
+    ):
+        path.mkdir(parents=True, exist_ok=True)
+    (app_root / "src/paper9_mnr/__init__.py").write_text(
+        '__version__ = "test"\n', encoding="utf-8"
+    )
+    check_script = app_root / "scripts/00_check_env.py"
+    check_script.write_text(
+        (PACKAGE_ROOT / "scripts/00_check_env.py").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+
+    env = os.environ.copy()
+    env["PAPER9_APP_ROOT"] = str(app_root)
+    env["PAPER9_PACKAGE_ROOT"] = str(bundle_root)
+    result = subprocess.run(
+        [sys.executable, str(check_script), "--no-heavy"],
+        cwd=bundle_root,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr or result.stdout
+    assert f"package_root={bundle_root}" in result.stdout
+    assert f"app_root={app_root}" in result.stdout
+    assert "docs: OK" in result.stdout
+    assert "MISSING" not in result.stdout
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows PowerShell parser required")

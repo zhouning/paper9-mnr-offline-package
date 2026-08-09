@@ -2,12 +2,15 @@
 
 import argparse
 import importlib
+import os
 import sys
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "src"
+DEFAULT_APP_ROOT = Path(__file__).resolve().parents[1]
+APP_ROOT = Path(os.environ.get("PAPER9_APP_ROOT", DEFAULT_APP_ROOT)).resolve()
+PACKAGE_ROOT = Path(os.environ.get("PAPER9_PACKAGE_ROOT", APP_ROOT)).resolve()
+SRC = APP_ROOT / "src"
 sys.path.insert(0, str(SRC))
 
 
@@ -31,13 +34,22 @@ def main() -> int:
     parser.add_argument("--include-notebook", action="store_true", help="Check optional notebook dependencies.")
     args = parser.parse_args()
 
-    print(f"package_root={ROOT}")
+    print(f"package_root={PACKAGE_ROOT}")
+    print(f"app_root={APP_ROOT}")
     print(f"src={SRC}")
     print(f"python={sys.version.split()[0]}")
 
-    for rel in ("src/paper9_mnr", "src/farmland_mpc", "configs", "scripts", "docs", "notebooks", "wheelhouse"):
-        path = ROOT / rel
-        print(f"{rel}: {'OK' if path.exists() else 'MISSING'}")
+    layout_paths = [
+        ("src/paper9_mnr", APP_ROOT / "src/paper9_mnr"),
+        ("src/farmland_mpc", APP_ROOT / "src/farmland_mpc"),
+        ("configs", APP_ROOT / "configs"),
+        ("scripts", APP_ROOT / "scripts"),
+        ("docs", PACKAGE_ROOT / "docs"),
+    ]
+    if APP_ROOT == PACKAGE_ROOT:
+        layout_paths.extend((name, PACKAGE_ROOT / name) for name in ("notebooks", "wheelhouse"))
+    for label, path in layout_paths:
+        print(f"{label}: {'OK' if path.exists() else 'MISSING'}")
 
     imports = LIGHT_IMPORTS if args.no_heavy else LIGHT_IMPORTS + FULL_IMPORTS
     if args.include_notebook:
