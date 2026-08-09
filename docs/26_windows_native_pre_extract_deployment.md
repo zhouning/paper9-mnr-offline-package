@@ -111,12 +111,45 @@ Get-ChildItem E:\authority\2025DLTB.gdb | Select-Object -First 10 Name
 
 不要把 `.gdb` 压成 ZIP 后直接传给 `-DltbSource`，也不要用 GeoPackage 替代客户 FileGDB。若一个 GDB 包含多个候选面图层，再按手册增加 `-DltbLayer`。
 
-## 7. 内置数据快速确认
+## 7. 客户提供 DEM 或行政区数据时
+
+包内 DEM 和行政区参考已经可以直接使用。客户若要求改用其权威版本，应把数据放在包外，通过参数覆盖，不能直接覆盖包内文件；覆盖包内文件会导致 `SHA256SUMS.txt` 校验失败。
+
+当前 Windows 启动器对中宁县外部 DEM 的输入契约是：`-DemDir` 必须指向一个包含 `DEM_MANIFEST.json` 和以下四个固定文件名的目录：
+
+```text
+Copernicus_DSM_COG_10_N36_00_E105_00_DEM.tif
+Copernicus_DSM_COG_10_N36_00_E106_00_DEM.tif
+Copernicus_DSM_COG_10_N37_00_E105_00_DEM.tif
+Copernicus_DSM_COG_10_N37_00_E106_00_DEM.tif
+```
+
+客户若只提供一个大范围 DEM、不同文件名、没有 `DEM_MANIFEST.json`，不要直接改名后运行；先核对 CRS、分辨率、范围、NoData 和瓦片覆盖，再由交付方制作匹配 manifest 或重新生成包。
+
+当前 `-AdminReference` 必须指向一个文件，推荐使用包含 `admin_reference` 图层的 GPKG，图层应为面、具有 CRS，并包含可识别的乡镇名称字段。客户若提供行政区 `.gdb` 目录，原生 Windows 启动器不能直接把该目录作为 `-AdminReference`；应先在有相应 GIS 工具的环境转换为 GPKG，或由交付方扩展并重新验证启动器。
+
+覆盖运行示例：
+
+```powershell
+$DemDir = "E:\authority\zhongning_dem"
+$AdminReference = "E:\authority\zhongning_admin.gpkg"
+$DltbSource = "E:\authority\2025DLTB.gdb"
+$DataRoot = "E:\paper9-work\640521"
+
+.\bin\run-paper9-windows.ps1 all `
+  -DltbSource $DltbSource `
+  -DemDir $DemDir `
+  -AdminReference $AdminReference `
+  -DataRoot $DataRoot
+```
+
+运行完成后检查 `<DataRoot>\input\fusion_report.json`，确认其中记录的 DEM 和行政区路径、文件哈希、CRS、范围及图层选择确实对应客户版本。
+## 8. 内置数据快速确认
 
 - 内江东兴：`datasets\dongxing`，含地类图斑样例、DEM 和行政区参考。
 - 重庆璧山：`datasets\bishan`，含地类图斑样例、DEM 和行政区参考。
 - 宁夏中宁：`dem\copernicus_glo30_zhongning` 的 4 个 DEM 瓦片，以及 `reference\admin\xiangzhen_zhongning.gpkg` 的 13 个乡镇行政区参考；不含中宁县客户地类图斑。
 
-## 8. 交接记录
+## 9. 交接记录
 
 至少保存 ZIP 文件名、ZIP SHA-256、目标机器 Windows 版本和架构、解压目标路径、包内校验输出、首次 `check` 输出，以及客户 `.gdb` 的来源和拷贝路径。结果仅用于探索性技术验证；PDT、生态保护红线和永久基本农田未提供、未评估，不能据此作出合规结论。
