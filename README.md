@@ -16,7 +16,8 @@ validation only and cannot establish regulatory compliance. See
 `docs/21_paper9v23_dltb_only_release.md`,
 `docs/22_windows_native_airgap.md`, and the Windows validation handoff in
 `docs/23_windows_native_validation_20260808.md`. Docker deployment is documented
-in `docs/24_paper9v23_windows_docker.md`.
+in `docs/24_paper9v23_windows_docker.md`. Before extracting a Windows ZIP, use
+`docs/26_windows_native_pre_extract_deployment.md`.
 
 The one-command Windows workflow is:
 

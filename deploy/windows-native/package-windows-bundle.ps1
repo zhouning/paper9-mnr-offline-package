@@ -89,7 +89,7 @@ try {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot "run-paper9-windows.ps1") -Destination (Join-Path $Staging "bin")
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot "verify-paper9-package.ps1") -Destination (Join-Path $Staging "bin")
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot "environment-windows-x86_64.yml") -Destination (Join-Path $Staging "docs")
-    foreach ($DocName in @("21_paper9v23_dltb_only_release.md", "22_windows_native_airgap.md", "23_windows_native_validation_20260808.md")) {
+    foreach ($DocName in @("21_paper9v23_dltb_only_release.md", "22_windows_native_airgap.md", "23_windows_native_validation_20260808.md", "26_windows_native_pre_extract_deployment.md")) {
         Copy-Item -LiteralPath (Join-Path $RepoRoot "docs\$DocName") -Destination (Join-Path $Staging "docs")
     }
     Copy-Item -Path (Join-Path $DemDir "*") -Destination (Join-Path $Staging "dem\copernicus_glo30_zhongning") -Recurse
@@ -220,6 +220,7 @@ and permanent basic farmland are not evaluated.
     Compress-Archive -Path (Join-Path $Staging "*") -DestinationPath $Output -CompressionLevel Optimal
     $BundleHash = (Get-FileHash -LiteralPath $Output -Algorithm SHA256).Hash.ToLowerInvariant()
     [IO.File]::WriteAllText("$Output.sha256", "$BundleHash *$([IO.Path]::GetFileName($Output))`r`n", $Utf8NoBom)
+    Copy-Item -LiteralPath (Join-Path $RepoRoot "docs\26_windows_native_pre_extract_deployment.md") -Destination (Join-Path (Split-Path $Output -Parent) "$BundleName-pre-extract-deployment.md") -Force
     Write-Host "Wrote Windows bundle: $Output"
     Write-Host "SHA-256: $BundleHash"
 } finally {
